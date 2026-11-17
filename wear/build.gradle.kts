@@ -6,8 +6,8 @@ android {
         applicationId = "dev.sleepalarm.app"
         minSdk = 30
         targetSdk = 35
-        versionCode = System.getenv("APP_VERSION_CODE")?.toInt() ?: 4
-        versionName = "0.3.0"
+        versionCode = System.getenv("APP_VERSION_CODE")?.toInt() ?: 5
+        versionName = "0.4.0"
     }
     val signingPath = System.getenv("SIGNING_KEYSTORE_PATH")
     if (!signingPath.isNullOrBlank()) {
@@ -25,6 +25,7 @@ android {
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 dependencies {
+    implementation(project(":core:diagnostics"))
     implementation(project(":core:update"))
     implementation(project(":core:model"))
     implementation(project(":core:analysis"))

@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <application>
+        <receiver android:name=".DiagnosticReplayReceiver" android:exported="false">
+            <intent-filter><action android:name="dev.sleepalarm.SENSOR_REPLAY" /></intent-filter>
+        </receiver>
         <service android:name=".HeartListenerService" android:exported="true"
             android:permission="com.google.android.wearable.healthservices.permission.PASSIVE_DATA_BINDING" />
         <service android:name=".SmartWindowService" android:exported="false" android:foregroundServiceType="health" />

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.diagnostics.DiagnosticArchiveTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-17T23:54:05.991Z" hostname="44d6e9daea21" time="8.663">
+  <properties/>
+  <testcase name="unclean termination keeps stop unknown and includes the entire unobserved tail" classname="dev.sleepalarm.diagnostics.DiagnosticArchiveTest" time="8.514"/>
+  <testcase name="restart events evaluation snapshots and bounded retention survive reopening" classname="dev.sleepalarm.diagnostics.DiagnosticArchiveTest" time="0.089"/>
+  <testcase name="sharing excludes raw spans personalization and preserves a remote snapshot" classname="dev.sleepalarm.diagnostics.DiagnosticArchiveTest" time="0.059"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

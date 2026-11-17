@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:11:07.894Z" hostname="d5a27e95d7a6" time="0.11">
+<testsuite name="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-11-17T23:33:45.928Z" hostname="44d6e9daea21" time="0.123">
   <properties/>
-  <testcase name="heart change alone cannot wake" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.026"/>
-  <testcase name="restless individual baseline is different from fixed absolute motion cutoff" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.005"/>
-  <testcase name="reliable HR corroborates ambiguous intensity without fixed BPM gate" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.018"/>
+  <testcase name="heart change alone cannot wake" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.053"/>
+  <testcase name="restless individual baseline is different from fixed absolute motion cutoff" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.002"/>
+  <testcase name="reliable HR corroborates ambiguous intensity without fixed BPM gate" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.011"/>
   <testcase name="single turn or impulse is not repeated evidence" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.002"/>
-  <testcase name="comparison is censored at actual observation end and does not prove efficacy" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.004"/>
-  <testcase name="missing or duplicated coverage does not masquerade as stillness or confidence" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.001"/>
-  <testcase name="short sleep context adds cost only when sufficiently recent and complete" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.0"/>
-  <testcase name="nonfinite negative invalid and future readings are rejected" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.001"/>
-  <testcase name="flat heart rate never vetoes strong motion" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.0"/>
+  <testcase name="comparison is censored at actual observation end and does not prove efficacy" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.006"/>
+  <testcase name="missing or duplicated coverage does not masquerade as stillness or confidence" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.002"/>
+  <testcase name="short sleep context adds cost only when sufficiently recent and complete" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.001"/>
+  <testcase name="nonfinite negative invalid and future readings are rejected" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.002"/>
+  <testcase name="flat heart rate never vetoes strong motion" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.002"/>
   <testcase name="no valid personal warmup means no early wake" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.001"/>
-  <testcase name="sustained motion can wake without heart rate" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.008"/>
-  <testcase name="future delayed HR is not available to causal replay" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.002"/>
-  <testcase name="threshold gets stricter with time and time never triggers motionless wake" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.002"/>
-  <testcase name="low quality stale or missing heart falls back to motion" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.002"/>
+  <testcase name="sustained motion can wake without heart rate" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.016"/>
+  <testcase name="future delayed HR is not available to causal replay" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.005"/>
+  <testcase name="threshold gets stricter with time and time never triggers motionless wake" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.005"/>
+  <testcase name="low quality stale or missing heart falls back to motion" classname="dev.sleepalarm.analysis.AdaptiveWakeEstimatorTest" time="0.008"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

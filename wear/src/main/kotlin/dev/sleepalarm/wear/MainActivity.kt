@@ -151,6 +151,7 @@ class MainActivity : ComponentActivity() {
                 item { Text("변경한 설정은 다음 예약에 적용됩니다. 진동 강도는 기기 지원 범위에 따릅니다.", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { Text(AlarmAccess.inspect(this@MainActivity).text(), style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { Text("스마트 센서 ${if (sensors) "허용됨" else "제한됨"}", textAlign = TextAlign.Center) }
+                item { ActionChip("센서 진단 · 화면 꺼짐 시험", { startActivity(Intent(this@MainActivity, dev.sleepalarm.diagnostics.SensorDiagnosticsActivity::class.java)) }) }
                 item { ActionChip("앱 버전 · 업데이트", { startActivity(Intent(this@MainActivity, dev.sleepalarm.update.UpdateActivity::class.java)) }) }
                 item { Text(sensorAccess.explanation, style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { ActionChip("알림 권한", { permission("notification") }) }
@@ -170,7 +171,7 @@ class MainActivity : ComponentActivity() {
             if (tab == 2) {
                 item { Text("자체 기록은 관측·알람 이력입니다. 총 수면 시간과 수면 단계를 측정하지 않습니다.", textAlign = TextAlign.Center) }
                 if (reports.isEmpty()) item { Text("아직 기록이 없습니다.") }
-                reports.take(7).forEach { r -> item { WatchReport(r) { refreshed, sleepy ->
+                reports.take(7).forEach { r -> item { ActionChip("${time(r.deadline)} 관측 구간 진단", { startActivity(Intent(this@MainActivity, dev.sleepalarm.diagnostics.SensorDiagnosticsActivity::class.java).putExtra("id", r.id)) }) }; item { WatchReport(r) { refreshed, sleepy ->
                     store.feedback(r.id, refreshed, sleepy)
                     scope.launch { runCatching { WatchSync(this@MainActivity).publishReports() } }
                     message = "평가 저장됨 · 기상 효과의 우열을 증명하는 결과는 아닙니다."
@@ -178,7 +179,7 @@ class MainActivity : ComponentActivity() {
                 item { ActionChip("휴대전화에 기록 전송", { scope.launch { runCatching { WatchSync(this@MainActivity).publishReports() }.onSuccess { message = "전송 요청 완료" }.onFailure { message = "연결 확인 후 다시 시도하세요." } } }) }
                 item { ActionChip("자체 기록 삭제", { scope.launch {
                     runCatching { WatchSync(this@MainActivity).deleteSyncedReports() }
-                    store.clearReports(); SensorDatabase(this@MainActivity).use { it.erase() }; message = "이 워치 기록 삭제됨"
+                    store.clearReports(); dev.sleepalarm.diagnostics.DiagnosticArchive(this@MainActivity).use { it.erase() }; SensorDatabase(this@MainActivity).use { it.erase() }; message = "이 워치 기록 삭제됨"
                 } }) }
             }
             if (message.isNotEmpty()) item { Text(message, color = MaterialTheme.colors.primary, textAlign = TextAlign.Center) }
@@ -206,9 +207,19 @@ private fun modeLabel(mode: AlgorithmMode) = when (mode) { AlgorithmMode.ADAPTIV
 
 @Composable
 private fun WatchReport(r: NightReport, save: (Int, Int) -> Unit) {
+    val diagnosticContext = androidx.compose.ui.platform.LocalContext.current
+    var diagnosticSummary by remember(r.id) { mutableStateOf("상세 센서 진단은 진단 버튼에서 확인하세요.") }
+    LaunchedEffect(r.id, r.motionBins, r.details.observationEnd) {
+        diagnosticSummary = withContext(Dispatchers.IO) {
+            runCatching { dev.sleepalarm.diagnostics.DiagnosticArchive(diagnosticContext).use { dev.sleepalarm.diagnostics.DiagnosticArchive.summary(it.get(r.id)) } }
+                .getOrDefault("진단 저장소를 읽지 못했습니다.")
+        }
+    }
     var refreshed by remember(r.id) { mutableIntStateOf(r.details.refreshed.takeIf { it > 0 } ?: 3) }
     var sleepy by remember(r.id) { mutableIntStateOf(r.details.sleepiness.takeIf { it > 0 } ?: 3) }
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(diagnosticSummary)
+        Text("신뢰도 0은 움직임 관문에서 평가가 보류된 경우도 있습니다. 실제 심박 수신·품질은 센서 진단에서 확인하세요.")
         Text("${time(r.deadline)} · ${r.details.algorithm}\n첫 알람 ${if (r.firstRingAt == 0L) "없음" else time(r.firstRingAt)}", textAlign = TextAlign.Center)
         Text("기존 제안 ${if (r.details.legacySuggestedAt == 0L) "관측 내 없음" else time(r.details.legacySuggestedAt)}\n적응형 제안 ${if (r.details.adaptiveSuggestedAt == 0L) "관측 내 없음" else time(r.details.adaptiveSuggestedAt)}\n관측 종료 이후는 비교 불가", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)
         Text("움직임 신뢰 ${"%.2f".format(r.details.motionQuality)} · 심박 ${"%.2f".format(r.details.heartQuality)}\n${r.decision}", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)

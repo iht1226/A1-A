@@ -7,6 +7,13 @@ import re
 import subprocess
 
 
+def verify_signers(certificates, pinned):
+    if not re.fullmatch(r"[0-9a-f]{64}", pinned):
+        raise ValueError('Invalid public signing-certificate pin')
+    if len(certificates) != 2 or any(c != pinned for c in certificates):
+        raise ValueError('Signing certificate differs from established Release. Preserve the existing GitHub Secrets; do not rotate or generate another key.')
+
+
 def main():
     output = Path('build/update-release')
     output.mkdir(parents=True, exist_ok=True)
@@ -32,6 +39,7 @@ def main():
         assets[module] = dict(module=module, versionCode=code, bytes=len(data), sha256=hashlib.sha256(data).hexdigest(),
                               url=f'https://github.com/iht1226/A1-A/releases/download/{tag}/{apk.name}')
     assert len(set(certs)) == len(set(versions)) == len(set(names)) == 1, 'phone/watch signing or version mismatch'
+    verify_signers(certs, Path('gradle/release-signing.sha256').read_text().strip())
     (output / 'update.json').write_text(json.dumps(dict(schema=1, version=names[0], **assets), indent=2) + '\n')
     print(f'Release {tag}: both APK signatures verified, certificate SHA-256 {certs[0]}')
 

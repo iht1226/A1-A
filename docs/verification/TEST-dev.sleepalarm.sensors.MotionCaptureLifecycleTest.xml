@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.sensors.MotionCaptureLifecycleTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-17T23:54:24.419Z" hostname="44d6e9daea21" time="0.382">
+  <properties/>
+  <testcase name="delayed raw events keep measurement and receipt time and invalid future cannot poison later events" classname="dev.sleepalarm.sensors.MotionCaptureLifecycleTest" time="0.208"/>
+  <testcase name="silent stream recovery is bounded and a service restart preserves final alarm and session diagnostics" classname="dev.sleepalarm.sensors.MotionCaptureLifecycleTest" time="0.174"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.sensors.test }; Matching wrappers: [Wrapper[receiver=[dev.sleepalarm.sensors.SensorControlReceiver@2c46f0ec], context=[android.app.ContextImpl@6f9d2517], intentFilter=[android.content.IntentFilter@6e8a51e4]]]
+]]></system-err>
+</testsuite>

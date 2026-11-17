@@ -1,3 +1,9 @@
+# 0.4.0 자동 업데이트
+
+기존 고정 서명 Secrets를 유지합니다. main의 빌드·테스트 후 Release의 `phone-update.apk`, `wear-update.apk`, `update.json`을 받는 기존 구조입니다. 이미 고정 서명 앱을 설치했다면 휴대전화 앱의 업데이트 확인/다운로드와 워치 전송을 사용하세요. 설치에는 기존 OS 승인 절차가 필요합니다. 새로운 서명 키를 생성하거나 기존 키를 교체하지 마세요.
+
+센서 시험·실기기 확인 절차: [SENSOR_RELIABILITY.md](SENSOR_RELIABILITY.md). 아래는 기존 Artifact/설치 안내입니다.
+
 # 0.3.0 APK 받기와 자동 업데이트
 
 고정 서명 Secrets가 등록되어 성공적으로 배포된 버전은 [GitHub Releases](https://github.com/iht1226/A1-A/releases/latest)의 `phone-update.apk`/`wear-update.apk`를 사용합니다. 초기 설치 후 휴대전화 앱의 ‘앱 업데이트’에서 자동 확인을 켤 수 있습니다. 매번 Artifact ZIP을 수동으로 풀지 않고 앱이 APK를 다운로드하고 워치로 전송합니다.

@@ -7,7 +7,7 @@
    commit blocks and writes its data to persistent storage immediately, apply
    will handle it in the background.
 
-/workspace/sleep-alarm/core/sensors/build.gradle.kts:20: Warning: A newer version of org.robolectric:robolectric than 4.14.1 is available: 4.18 [NewerVersionAvailable]
+/workspace/sleep-alarm/core/sensors/build.gradle.kts:21: Warning: A newer version of org.robolectric:robolectric than 4.14.1 is available: 4.18 [NewerVersionAvailable]
     testImplementation("org.robolectric:robolectric:4.14.1")
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -31,7 +31,10 @@
 
    https://goo.gle/UnsafeProtectedBroadcastReceiver
 
-/workspace/sleep-alarm/core/sensors/src/main/kotlin/dev/sleepalarm/sensors/SensorDatabase.kt:30: Warning: Use the KTX extension function SQLiteDatabase.transaction instead? [UseKtx]
+/workspace/sleep-alarm/core/sensors/src/main/kotlin/dev/sleepalarm/sensors/SensorDatabase.kt:34: Warning: Use the KTX extension function SQLiteDatabase.transaction instead? [UseKtx]
+        val db = writableDatabase; db.beginTransaction()
+                                   ~~~~~~~~~~~~~~~~~~~~~
+/workspace/sleep-alarm/core/sensors/src/main/kotlin/dev/sleepalarm/sensors/SensorDatabase.kt:46: Warning: Use the KTX extension function SQLiteDatabase.transaction instead? [UseKtx]
         db.beginTransaction()
         ~~~~~~~~~~~~~~~~~~~~~
 /workspace/sleep-alarm/core/sensors/src/main/kotlin/dev/sleepalarm/sensors/SensorPermissionStatus.kt:14: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
@@ -94,7 +97,7 @@
    </lint>
    ```
 
-/workspace/sleep-alarm/core/sensors/build.gradle.kts:20: Warning: Use version catalog instead [UseTomlInstead]
+/workspace/sleep-alarm/core/sensors/build.gradle.kts:21: Warning: Use version catalog instead [UseTomlInstead]
     testImplementation("org.robolectric:robolectric:4.14.1")
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -104,4 +107,4 @@
    declarations outside of the TOML file and suggests moving them (and in the
    IDE, provides a quickfix to performing the operation automatically).
 
-0 errors, 6 warnings
+0 errors, 7 warnings

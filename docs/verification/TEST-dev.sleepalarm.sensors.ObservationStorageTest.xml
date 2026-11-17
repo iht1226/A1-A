@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="dev.sleepalarm.sensors.ObservationStorageTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-17T14:30:08.121Z" hostname="d5a27e95d7a6" time="7.453">
+<testsuite name="dev.sleepalarm.sensors.ObservationStorageTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-17T23:54:24.804Z" hostname="44d6e9daea21" time="0.136">
   <properties/>
-  <testcase name="motion monitoring is allowed without heart permissions when activity recognition is granted" classname="dev.sleepalarm.sensors.ObservationStorageTest" time="4.856"/>
-  <testcase name="v1 upgrade preserves observations but marks unknown arrival times unavailable for causal replay" classname="dev.sleepalarm.sensors.ObservationStorageTest" time="2.373"/>
-  <testcase name="quality and actual arrival times round trip without sample count inflation" classname="dev.sleepalarm.sensors.ObservationStorageTest" time="0.209"/>
+  <testcase name="motion monitoring is allowed without heart permissions when activity recognition is granted" classname="dev.sleepalarm.sensors.ObservationStorageTest" time="0.04"/>
+  <testcase name="v1 upgrade preserves observations but marks unknown arrival times unavailable for causal replay" classname="dev.sleepalarm.sensors.ObservationStorageTest" time="0.057"/>
+  <testcase name="quality and actual arrival times round trip without sample count inflation" classname="dev.sleepalarm.sensors.ObservationStorageTest" time="0.039"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

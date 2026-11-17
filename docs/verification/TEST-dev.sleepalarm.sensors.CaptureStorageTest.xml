@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.sensors.CaptureStorageTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-17T23:54:16.575Z" hostname="44d6e9daea21" time="7.826">
+  <properties/>
+  <testcase name="test permission rejection leaves settings reports and final alarm untouched" classname="dev.sleepalarm.sensors.CaptureStorageTest" time="7.355"/>
+  <testcase name="collection trial is rejected near alarm measurement without replacing reservation" classname="dev.sleepalarm.sensors.CaptureStorageTest" time="0.09"/>
+  <testcase name="restart duplicate bins preserve first availability for causal replay" classname="dev.sleepalarm.sensors.CaptureStorageTest" time="0.127"/>
+  <testcase name="v2 migration adds raw event audit without rewriting observations" classname="dev.sleepalarm.sensors.CaptureStorageTest" time="0.083"/>
+  <testcase name="audit preserves actual measurement arrival and discard reason including long delays" classname="dev.sleepalarm.sensors.CaptureStorageTest" time="0.168"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.sensors.test }; Matching wrappers: [Wrapper[receiver=[dev.sleepalarm.sensors.SensorControlReceiver@23da19c4], context=[android.app.ContextImpl@3e0062c9], intentFilter=[android.content.IntentFilter@2724f56c]]]
+Intent = Intent { act=dev.sleepalarm.REPORT_UPDATED pkg=dev.sleepalarm.sensors.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.WINDOW pkg=dev.sleepalarm.sensors.test }; Matching wrappers: [Wrapper[receiver=[dev.sleepalarm.sensors.SensorControlReceiver@58714f5a], context=[android.app.ContextImpl@1bce1a96], intentFilter=[android.content.IntentFilter@f16f9a1]]]
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.sensors.test }; Matching wrappers: [Wrapper[receiver=[dev.sleepalarm.sensors.SensorControlReceiver@58714f5a], context=[android.app.ContextImpl@1bce1a96], intentFilter=[android.content.IntentFilter@f16f9a1]]]
+Intent = Intent { act=dev.sleepalarm.REPORT_UPDATED pkg=dev.sleepalarm.sensors.test }; Matching wrappers: []
+]]></system-err>
+</testsuite>

@@ -8,6 +8,7 @@ android {
 }
 kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }
 dependencies {
+    implementation(project(":core:diagnostics"))
     implementation(project(":core:model"))
     implementation(project(":core:analysis"))
     implementation(project(":core:settings"))

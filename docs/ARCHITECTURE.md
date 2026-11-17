@@ -1,3 +1,9 @@
+# 0.4.0 수집·진단 분리
+
+core:analysis의 MotionAccumulator/CapturePolicy/CoverageDiagnostics/OfflineReplay는 Android 없이 시험합니다. core:sensors의 MotionCapture는 단일 HandlerThread에서 측정·DB·분석을 직렬 실행합니다. SmartWindowService는 범위 검증·FGS·선택 알고리즘·종료를 조정합니다. core:diagnostics는 별도 로컬 DB/화면/근거리 전송만 제공하며 알람 모듈은 참조하지 않습니다. phone은 센서 서비스·Health Services 의존 없이 진단 화면을 사용합니다. AlarmManager 기반 정시 알람은 이 경로와 독립입니다.
+
+원인·보존 시각·제한·시험은 [SENSOR_RELIABILITY.md](SENSOR_RELIABILITY.md)에 정리했습니다.
+
 # 0.3.0 확장
 
 `core:update`를 추가했습니다. 알람·분석 모듈은 업데이트 모듈을 참조하지 않습니다. 다운로드/전송/사용자 승인/서명 검증은 별도 WorkManager/PackageInstaller 경로이며 업데이트 모듈은 보호 목적으로 저장된 워치 예약을 읽기만 합니다. 전체 설계와 배포/최초 전환 제약은 [UPDATES.md](UPDATES.md)를 참고하세요.

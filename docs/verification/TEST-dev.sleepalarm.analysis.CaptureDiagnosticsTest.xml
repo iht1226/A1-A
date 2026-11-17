@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.analysis.CaptureDiagnosticsTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-17T23:33:46.556Z" hostname="44d6e9daea21" time="0.066">
+  <properties/>
+  <testcase name="adequate stillness is different from insufficient observation" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.001"/>
+  <testcase name="batch arrival cannot be used before receipt even with dense heart data" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.035"/>
+  <testcase name="FIFO sizing honors requested low sampling rate and available capacity" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.0"/>
+  <testcase name="replay uses recorded ticks generations arrival times and exact input snapshots" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.01"/>
+  <testcase name="duplicate reversed invalid events do not inflate coverage or become stillness" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.001"/>
+  <testcase name="five Hz coverage crosses boundaries without losing observed time" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.0"/>
+  <testcase name="coverage has precise leading trailing overlap gaps and minute denominators" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.016"/>
+  <testcase name="ninety five bins over forty five minutes cannot masquerade as full observation" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.002"/>
+  <testcase name="suspend delayed FIFO samples are retained but future and unreliable samples are rejected" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.0"/>
+  <testcase name="irregular event intervals preserve exact known time and never bridge long gaps" classname="dev.sleepalarm.analysis.CaptureDiagnosticsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

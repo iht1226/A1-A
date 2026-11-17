@@ -1,146 +1,169 @@
 package dev.sleepalarm.sensors
 
 import android.app.*
-import android.content.Intent
+import android.content.*
 import android.content.pm.ServiceInfo
-import android.hardware.*
 import android.os.*
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
-import androidx.health.services.client.HealthServices
+import androidx.core.content.ContextCompat
 import dev.sleepalarm.alarm.AlarmController
 import dev.sleepalarm.analysis.*
+import dev.sleepalarm.diagnostics.DiagnosticArchive
 import dev.sleepalarm.model.*
-import dev.sleepalarm.settings.SettingsStore
-import dev.sleepalarm.settings.JsonCodec
+import dev.sleepalarm.settings.*
 import kotlinx.coroutines.*
-import org.json.JSONArray
-import org.json.JSONObject
-import kotlin.math.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.json.*
+import java.util.UUID
 
 class SmartWindowService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var session = ""
-    private var db: SensorDatabase? = null
-    private var listener: SensorEventListener? = null
-    private var sensorThread: HandlerThread? = null
-    private val sensors by lazy { getSystemService(SensorManager::class.java) }
+    private val main = Handler(Looper.getMainLooper())
+    private var capture: MotionCapture? = null
+    private var endReason = "SERVICE_DESTROYED_OR_SYSTEM_STOP"
+    private val stopTest = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (capture?.spec?.test == true) { endReason = "TEST_USER_STOP"; stopSelf() }
+        }
+    }
+    override fun onCreate() {
+        super.onCreate()
+        ContextCompat.registerReceiver(this, stopTest, IntentFilter(DiagnosticArchive.TEST_STOP), ContextCompat.RECEIVER_NOT_EXPORTED)
+    }
     override fun onBind(intent: Intent?) = null
     private fun battery(): Int = getSystemService(BatteryManager::class.java).getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY).takeIf { it in 0..100 } ?: -1
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val store = SettingsStore(this)
-        val p = store.plan()
-        val now = System.currentTimeMillis()
-        if (p == null || !p.enabled || !p.settings.smartEnabled || p.finalDelivered || p.earlyDelivered ||
-            now !in p.sensorStart until p.deadline || !MonitoringAccess.canMonitor(this) || store.blockedSession() == p.id) {
-            stopSelf(); return START_NOT_STICKY
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = try { start(intent, startId) }
+        catch (e: Exception) { SettingsStore(this).status("센서 시작 오류: ${e.javaClass.simpleName}; 정시 알람 유지"); stopSelf(); START_NOT_STICKY }
+    private fun start(intent: Intent?, startId: Int): Int {
+        val now = System.currentTimeMillis(); val store = SettingsStore(this); val p = store.plan()
+        val activePlan = p?.takeIf { it.enabled && it.settings.smartEnabled && !it.finalDelivered && !it.earlyDelivered &&
+            now in it.sensorStart until it.deadline && store.blockedSession() != it.id }
+        val testRequest = intent?.action == DiagnosticArchive.TEST_START
+        if (testRequest && (capture != null || p?.let { it.enabled && now + 16 * 60_000 >= it.sensorStart && !it.finalDelivered && !it.earlyDelivered } == true)) {
+            store.status("현재 수집 중이거나 기상 관측이 임박해 시험을 시작하지 않습니다.")
+            if (capture == null) stopSelf(); return if (capture != null) START_STICKY else START_NOT_STICKY
         }
+        val resumedTest = if (intent == null && activePlan == null) runCatching { DiagnosticArchive(this).use { a -> a.recent().firstOrNull {
+            it.optBoolean("test") && it.optLong("stoppedAt") == 0L && now in it.optLong("plannedStart") until it.optLong("plannedEnd")
+        } } }.getOrNull() else null
+        val spec = when {
+            activePlan != null -> CaptureSpec(activePlan.id, activePlan.sensorStart, activePlan.windowStart, activePlan.deadline, false)
+            testRequest -> { val minutes = intent!!.getIntExtra("minutes", 10).coerceIn(10,15); CaptureSpec("test-${UUID.randomUUID()}", now, now + 5 * 60_000, now + minutes * 60_000, true) }
+            resumedTest != null -> CaptureSpec(resumedTest.getString("id"), resumedTest.getLong("plannedStart"), resumedTest.getLong("windowStart"), resumedTest.getLong("plannedEnd"), true)
+            capture?.spec?.test == true && now < capture!!.spec.end -> return START_STICKY
+            else -> { endReason = "PLAN_INACTIVE_OR_WINDOW_END"; stopSelf(); return START_NOT_STICKY }
+        }
+        if (!MonitoringAccess.canMonitor(this)) { store.status("센서 권한 제한: 정시 알람 유지"); recordStartFailure(this, spec, "MONITORING_PERMISSION_DENIED"); stopSelf(); return START_NOT_STICKY }
         try {
-            getSystemService(NotificationManager::class.java).createNotificationChannel(
-                NotificationChannel("monitor-v1", "기상 범위 센서 분석", NotificationManager.IMPORTANCE_LOW))
-            ServiceCompat.startForeground(this, 701,
-                NotificationCompat.Builder(this, "monitor-v1").setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-                    .setContentTitle("기상 관측 · 기준선/움직임 분석")
-                    .setContentText("수면 단계 분류가 아닙니다. 정시 알람은 독립 예약되어 있습니다.")
-                    .setOngoing(true).build(), if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH else 0)
-        } catch (e: Exception) { store.status("센서 전경 실행 제한: 정시 알람 유지 (${e.javaClass.simpleName})"); stopSelf(); return START_NOT_STICKY }
-        if (session == p.id) return START_NOT_STICKY
-        session = ""
-        stopCapture()
-        session = p.id
-        val observations = try { SensorDatabase(this).also { it.prune(now) } }
-        catch (e: Exception) { store.status("관측 DB 오류: 정시 알람 유지"); stopSelf(); return START_NOT_STICKY }
-        db = observations
-        val monitorOffset = now - SystemClock.elapsedRealtime()
-        val accumulator = MotionAccumulator()
-        val accelerometer = sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER, true) ?: sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        if (accelerometer == null) { store.status("가속도 센서 없음: 정시 알람 유지"); stopSelf(); return START_NOT_STICKY }
-        sensorThread = HandlerThread("sleep-motion").also { it.start() }
-        val callback = object : SensorEventListener {
-            override fun onSensorChanged(event: SensorEvent) {
-                val at = monitorOffset + event.timestamp / 1_000_000
-                val received = System.currentTimeMillis()
-                if (at < p.armedAt || at > received || received - at > 60_000 || event.values.size < 3 || event.accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE) return
-                val energy = abs(sqrt(event.values.take(3).sumOf { it.toDouble().pow(2) }) - SensorManager.GRAVITY_EARTH) / SensorManager.GRAVITY_EARTH
-                accumulator.add(at, energy)?.takeIf { it.coveredMillis > 0 }?.let {
-                    runCatching { observations.addMotion(p.id, it.copy(receivedAt = received)) }
-                }
+            getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel("monitor-v1", "기상 관측·센서 시험", NotificationManager.IMPORTANCE_LOW))
+            ServiceCompat.startForeground(this, 701, NotificationCompat.Builder(this, "monitor-v1").setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setContentTitle(if (spec.test) "화면 꺼짐 센서 수집 시험" else "기상 관측·센서 진단")
+                .setContentText("정시 알람 독립 예약 · 기상 단계 분류 아님").setOngoing(true).build(),
+                if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH else 0)
+        } catch (e: Exception) { store.status("센서 FGS 제한: 정시 알람 유지 (${e.javaClass.simpleName})"); recordStartFailure(this, spec, e.javaClass.simpleName); stopSelf(); return START_NOT_STICKY }
+        if (capture?.spec?.id == spec.id) return START_STICKY
+        capture?.close("PREEMPTED_BY_ALARM_OR_NEW_SESSION")
+        val reference = activePlan?.let { plan ->
+            val saved = store.reports().find { it.id == plan.id }?.details?.profileSnapshot.orEmpty()
+            if (saved.isNotBlank()) runCatching { reference(JSONObject(saved)) }.getOrNull() else null
+        } ?: Personalization.reference(store.reports(), activePlan?.armedAt ?: now,
+            store.sleepContext().takeIf { it.recordedAt <= (activePlan?.armedAt ?: now) } ?: SleepContext())
+        val threshold = activePlan?.settings?.adaptiveThreshold ?: 0.72
+        val profile = profile(reference, threshold)
+        val comparison = CausalComparison(AdaptiveWakeEstimator(reference = reference, userThreshold = threshold))
+        val next = MotionCapture(this, spec, { c, time ->
+            c.state.put("profile", profile).put("algorithm", activePlan?.algorithm?.name ?: "TEST_NO_ALARM")
+            if (!MonitoringAccess.canMonitor(this)) { finish(c, "MONITORING_PERMISSION_LOST", startId); return@MotionCapture }
+            if (spec.test) { c.state.put("reason", "독립 센서 시험: 알람 판단·출력 없음"); return@MotionCapture }
+            val current = store.plan()
+            if (current?.id != spec.id || !current.enabled || current.finalDelivered || current.earlyDelivered || !MonitoringAccess.canMonitor(this)) {
+                finish(c, "PLAN_CHANGED_OR_PERMISSION_LOST", startId); return@MotionCapture
             }
-            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
-        }
-        listener = callback
-        val registered = runCatching { sensors.registerListener(callback, accelerometer, 200_000, 10_000_000, Handler(sensorThread!!.looper)) }.getOrDefault(false)
-        if (!registered) { store.status("움직임 센서 등록 실패: 정시 알람 유지"); stopSelf(); return START_NOT_STICKY }
-        val context = store.sleepContext().takeIf { it.recordedAt <= p.armedAt } ?: SleepContext()
-        val reference = Personalization.reference(store.reports(), p.armedAt, context)
-        val profileJson = JSONObject().put("version", "adaptive-0.2.0").put("parameters", AdaptiveParameters().toString())
-            .put("userThreshold", p.settings.adaptiveThreshold).put("motionMedians", JSONArray(reference.motionMedians))
-            .put("motionMads", JSONArray(reference.motionMads)).put("offset", reference.thresholdOffset)
-            .put("feedbackNights", reference.feedbackNights).put("sleepContext", JsonCodec.context(context)).toString()
-        runCatching { store.updateReport(p.id) { it.copy(details = it.details.copy(
+            if (time < spec.window) { store.status("개인 기준선 예열 중 · 진단에서 실제 관측률 확인 가능"); c.state.put("reason", "예열 중: 판단 구간 시작 전"); return@MotionCapture }
+            val m = c.db.motion(spec.id, spec.start); val h = c.db.heart(spec.id, spec.start)
+            val allowed = PassiveHeartMonitor.permitted(this)
+            val elapsed = SystemClock.elapsedRealtime()
+            val result = comparison.update(time, elapsed, spec.window, spec.end, m, if (allowed) h else emptyList())
+            c.archive.tick(spec.id, JSONObject().put("now", time).put("elapsed", elapsed).put("generation", c.state.getInt("generation"))
+                .put("motionIds", JSONArray(m.map { it.at })).put("heartIds", JSONArray(h.map { it.at }))
+                .put("heartAllowed", allowed).put("legacyAt", result.legacyAt).put("adaptiveAt", result.adaptiveAt)
+                .put("legacyReason", result.legacy.reason).put("adaptiveReason", result.adaptive.reason)
+                .put("legacyWake", result.legacy.wake).put("adaptiveWake", result.adaptive.wake)
+                .put("legacyConfidence", result.legacy.confidence).put("adaptiveConfidence", result.adaptive.confidence))
+            val selected = if (activePlan!!.algorithm == AlgorithmId.LEGACY_011) result.legacy else result.adaptive
+            c.state.put("reason", selected.reason)
+            store.status(selected.reason)
+            val e = result.adaptive.evidence
+            store.updateReport(spec.id) { it.copy(motionBins = m.size, heartSamples = h.size, decision = selected.reason,
+                details = it.details.copy(observationEnd = time, legacySuggestedAt = it.details.legacySuggestedAt.takeIf { at -> at > 0 } ?: result.legacyAt,
+                    adaptiveSuggestedAt = it.details.adaptiveSuggestedAt.takeIf { at -> at > 0 } ?: result.adaptiveAt,
+                    legacyReason = if (it.details.legacySuggestedAt > 0) it.details.legacyReason else result.legacy.reason,
+                    adaptiveReason = if (it.details.adaptiveSuggestedAt > 0) it.details.adaptiveReason else result.adaptive.reason,
+                    legacyConfidence = if (it.details.legacySuggestedAt > 0) it.details.legacyConfidence else result.legacy.confidence,
+                    adaptiveConfidence = if (it.details.adaptiveSuggestedAt > 0) it.details.adaptiveConfidence else result.adaptive.confidence,
+                    motionQuality = e?.motionQuality ?: 0.0, heartQuality = e?.heartQuality ?: 0.0,
+                    referenceMedian = e?.motionMedian ?: 0.0, referenceMad = e?.motionMad ?: 0.0,
+                    referenceHeart = e?.heartMedian ?: 0.0, referenceHeartMad = e?.heartMad ?: 0.0)) }
+            val at = if (activePlan.algorithm == AlgorithmId.LEGACY_011) result.legacyAt else result.adaptiveAt
+            if (at > 0) {
+                c.persist(time) // Freeze what was observed before requesting the actual alarm.
+                if (AlarmController(this).smartWake(spec.id)) finish(c, "SMART_ALARM_REQUESTED", startId)
+            }
+        }, { reason -> if (reason == "CLOCK_CHANGED" && !spec.test) { store.blockSmart(spec.id); store.status("시스템 시각 변경: 이번 조기 판단 중지, 정시 알람 유지") }; main.post { capture?.takeIf { it.spec.id == spec.id }?.let { finish(it, reason, startId) } } })
+        CaptureRegistry.active = spec
+        capture = next; endReason = "SERVICE_DESTROYED_OR_SYSTEM_STOP"
+        if (!spec.test) runCatching { store.updateReport(spec.id) { it.copy(details = it.details.copy(
             batteryStart = if (it.details.batteryStartedAt == 0L) battery() else it.details.batteryStart,
-            batteryStartedAt = it.details.batteryStartedAt.takeIf { at -> at > 0 } ?: now,
-            personalizationOffset = reference.thresholdOffset, personalizedNights = reference.feedbackNights,
-            profileSnapshot = profileJson)) } }
-        if (PassiveHeartMonitor.permitted(this)) scope.launch {
-            runCatching { withTimeout(15_000) { PassiveHeartMonitor.register(this@SmartWindowService) } }
-                .onFailure { store.status("심박 등록 지연/제한: 움직임 기반 분석 유지") }
-        } else store.status("심박 없이 움직임 기준선 수집 중")
+            batteryStartedAt = it.details.batteryStartedAt.takeIf { t -> t > 0 } ?: now,
+            personalizationOffset = reference.thresholdOffset, personalizedNights = reference.feedbackNights, profileSnapshot = profile.toString())) } }
+        next.start()
         scope.launch {
-            val comparison = CausalComparison(AdaptiveWakeEstimator(reference = reference, userThreshold = p.settings.adaptiveThreshold))
-            try {
-                while (isActive) {
-                    delay(WakeTiming.EVALUATION_MILLIS)
-                    val current = store.plan()
-                    val time = System.currentTimeMillis()
-                    if (current?.id != p.id || !current.enabled || current.finalDelivered || current.earlyDelivered || time >= current.deadline) break
-                    if (!MonitoringAccess.canMonitor(this@SmartWindowService) || store.blockedSession() == p.id) break
-                    if (abs((time - SystemClock.elapsedRealtime()) - monitorOffset) > 2_000) {
-                        store.blockSmart(p.id); store.status("시스템 시각 변경: 조기 분석 중지, 정시 알람 유지"); break
-                    }
-                    if (time < p.windowStart) { store.status("개인 기준선 예열 중 · 스마트 판단은 설정 범위에서 시작"); continue }
-                    val result = runCatching {
-                        comparison.update(time, SystemClock.elapsedRealtime(), p.windowStart, p.deadline,
-                            observations.motion(p.id, p.sensorStart),
-                            if (PassiveHeartMonitor.permitted(this@SmartWindowService)) observations.heart(p.id, p.sensorStart) else emptyList())
-                    }.getOrElse { store.status("분석 오류: 이번 관측 보류, 정시 알람 유지"); continue }
-                    val selected = if (p.algorithm == AlgorithmId.LEGACY_011) result.legacy else result.adaptive
-                    store.status(selected.reason)
-                    val evidence = result.adaptive.evidence
-                    runCatching { store.updateReport(p.id) { it.copy(
-                        motionBins = observations.motion(p.id, p.sensorStart).size,
-                        heartSamples = observations.heart(p.id, p.sensorStart).size, decision = selected.reason,
-                        details = it.details.copy(observationEnd = time, legacySuggestedAt = result.legacyAt,
-                            adaptiveSuggestedAt = result.adaptiveAt, legacyReason = result.legacy.reason,
-                            legacyConfidence = result.legacy.confidence, adaptiveConfidence = result.adaptive.confidence,
-                            adaptiveReason = result.adaptive.reason, motionQuality = evidence?.motionQuality ?: 0.0,
-                            heartQuality = evidence?.heartQuality ?: 0.0, referenceMedian = evidence?.motionMedian ?: 0.0,
-                            referenceMad = evidence?.motionMad ?: 0.0, referenceHeart = evidence?.heartMedian ?: 0.0,
-                            referenceHeartMad = evidence?.heartMad ?: 0.0)) } }
-                    val chosenAt = if (p.algorithm == AlgorithmId.LEGACY_011) result.legacyAt else result.adaptiveAt
-                    if (chosenAt > 0) { ensureActive(); AlarmController(this@SmartWindowService).smartWake(p.id); break }
-                }
-            } finally { if (session == p.id) stopSelf() }
+            if (PassiveHeartMonitor.permitted(this@SmartWindowService)) {
+                runCatching { heartMutex.withLock { withTimeout(15_000) { PassiveHeartMonitor.register(this@SmartWindowService) } } }
+                    .onSuccess { next.heartState = "Passive Health Services 등록 완료" }
+                    .onFailure { next.heartState = "심박 등록 실패/지연: ${it.javaClass.simpleName}; 움직임 경로 유지" }
+            } else next.heartState = "심박 권한 없음: 움직임 기반 분석만 사용"
         }
-        return START_NOT_STICKY
+        return START_STICKY
     }
-
-    private fun stopCapture() {
-        listener?.let { sensors.unregisterListener(it) }; listener = null
-        sensorThread?.quitSafely(); sensorThread = null
-        scope.coroutineContext.cancelChildren()
-        runCatching { db?.close() }; db = null
+    private fun finish(c: MotionCapture, reason: String, startId: Int) {
+        main.post { if (capture === c) { endReason = reason; stopSelf() } }
     }
     override fun onDestroy() {
-        val id = session
-        session = ""
-        stopCapture()
-        runCatching { SettingsStore(this).updateReport(id) { it.copy(details = it.details.copy(batteryEnd = battery())) } }
+        val c = capture; capture = null
+        if (CaptureRegistry.active?.id == c?.spec?.id) CaptureRegistry.active = null
+        if (c != null && !c.spec.test && endReason == "SERVICE_DESTROYED_OR_SYSTEM_STOP") {
+            val p = SettingsStore(this).plan()
+            endReason = when {
+                p?.id != c.spec.id -> "PLAN_REPLACED"
+                p.finalDelivered -> "FINAL_ALARM_DELIVERED"
+                p.earlyDelivered -> "SMART_ALARM_DELIVERED"
+                !p.enabled -> "PLAN_CANCELLED"
+                System.currentTimeMillis() >= c.spec.end -> "PLANNED_END"
+                else -> endReason
+            }
+        }
+        c?.close(endReason)
+        if (c != null && !c.spec.test) runCatching { SettingsStore(this).updateReport(c.spec.id) { it.copy(details = it.details.copy(batteryEnd = battery())) } }
+        scope.launch { runCatching { heartMutex.withLock { withTimeout(10_000) { PassiveHeartMonitor.unregister(this@SmartWindowService) } } }; scope.cancel() }
+        runCatching { unregisterReceiver(stopTest) }
         sendBroadcast(Intent(AlarmController.ACTION_REPORT_UPDATED).setPackage(packageName))
-        runCatching { HealthServices.getClient(this).passiveMonitoringClient.clearPassiveListenerServiceAsync() }
-        scope.cancel()
-        runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
-        super.onDestroy()
+        runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }; super.onDestroy()
+    }
+    companion object {
+        private val heartMutex = Mutex()
+        fun reference(j: JSONObject): PersonalReference {
+            fun list(key: String): List<Double> = j.optJSONArray(key)?.let { a -> (0 until a.length()).map { a.getDouble(it) } } ?: emptyList()
+            return PersonalReference(list("motionMedians"), list("motionMads"), j.optDouble("offset", 0.0), j.optInt("feedbackNights"), j.optJSONObject("sleepContext")?.let(JsonCodec::context) ?: SleepContext())
+        }
+        fun profile(r: PersonalReference, threshold: Double) = JSONObject().put("version", "adaptive-0.2.0").put("parameters", AdaptiveParameters().toString())
+            .put("userThreshold", threshold).put("motionMedians", JSONArray(r.motionMedians)).put("motionMads", JSONArray(r.motionMads))
+            .put("offset", r.thresholdOffset).put("feedbackNights", r.feedbackNights).put("sleepContext", JsonCodec.context(r.sleepContext))
+        fun recordStartFailure(c: Context, spec: CaptureSpec, reason: String) { runCatching { DiagnosticArchive(c).use { a ->
+            val j = a.get(spec.id) ?: JSONObject().put("id", spec.id).put("plannedStart", spec.start).put("windowStart", spec.window).put("plannedEnd", spec.end).put("test", spec.test)
+            j.put("reason", "서비스 시작 실패: $reason"); a.save(j); a.event(spec.id, "FGS_START_FAILED $reason")
+        } } }
     }
 }

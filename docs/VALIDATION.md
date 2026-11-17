@@ -1,3 +1,17 @@
+# 0.4.0 수집 신뢰성 검증
+
+로컬 JDK 17 / SDK 36 / 기존 Wrapper로 **Kotlin/JVM·Robolectric 319개**(model 16, analysis 245, alarm 29, sensors 17, update 9, diagnostics 3)가 통과했습니다. 실패/오류/건너뜀 0개입니다. Python의 기존 인증서 pin 정책 3개도 통과했습니다. 합계 322개입니다. 기존 299개 회귀 시험을 유지합니다.
+
+두 debug APK 빌드, phone/wear/core:sensors/core:diagnostics lint Error 0, actionlint 검사도 통과했습니다. 원시 XML과 lint 결과는 verification에 갱신했습니다. 이 Cloud 환경의 Robolectric 런타임은 기존 외부 offline init script를 사용하며 그 로컬 경로를 프로젝트나 CI에 넣지 않았습니다.
+
+추가 시험은 5초 경계 시간 보존, 불규칙 간격과 긴 공백, 60초 넘는 배치 지연, 미래/중복/역순/정확도 오류, FIFO 정책, 정확한 입력 snapshot과 평가 시각 리플레이, DB 업그레이드/불변 첫 수신/감사 기록, 시험 중 기존 예약 보호, 화면 꺼짐을 모의한 SensorEvent 주입, 모의 센서 재등록/세션 재개, 종료 미확인 꼬리 공백과 근거리 전송용 자료 제한을 포함합니다.
+
+**실기기 검증 아님:** 모의 SensorManager/PowerManager와 주입한 이벤트는 Watch7의 실제 FIFO·wake-up 지원·절전·OS의 START_STICKY 복구·배터리·권한 상태를 검증하지 않습니다. 95구간 문제가 실제로 개선됐다는 결론도 아직 없습니다. 실제 절차는 [SENSOR_RELIABILITY.md](SENSOR_RELIABILITY.md)를 참고하세요.
+
+기존 Release apk-build1006의 공개 인증서 지문을 고정했습니다. 새 서명 Release가 같은 인증서인지 GitHub Actions의 실제 apksigner 결과로 확인해야 합니다. 개인 키와 Secrets를 변경하거나 생성하지 않습니다. 로컬에서 운영 키로 서명했다고 주장하지 않습니다.
+
+아래는 이전 버전 검증 기록입니다.
+
 # 0.3.0 추가 검증 (2026-11-17 KST)
 
 권한 진단과 업데이트 모듈 변경 후 로컬 자동 테스트 **299개, 실패/오류/건너뜀 0개**를 확인했습니다. 이전 285개를 유지하고 권한/설정 경로 5개, 업데이트 검증/승인/알람 보호/파일 공유 처리 9개를 추가했습니다.

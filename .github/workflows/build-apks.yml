@@ -60,8 +60,11 @@ jobs:
       - name: Build phone and watch APKs with project Wrapper
         run: ./gradlew --no-daemon --stacktrace :phone:assembleDebug :wear:assembleDebug
 
+      - name: Test existing signing-certificate pin policy
+        run: python3 -m unittest discover -s tools -p 'test_*.py'
+
       - name: Test alarm safety and causal adaptive decisions
-        run: ./gradlew --no-daemon --stacktrace :core:model:test :core:analysis:test :core:alarm:testDebugUnitTest :core:sensors:testDebugUnitTest :core:update:testDebugUnitTest
+        run: ./gradlew --no-daemon --stacktrace :core:model:test :core:analysis:test :core:alarm:testDebugUnitTest :core:sensors:testDebugUnitTest :core:update:testDebugUnitTest :core:diagnostics:testDebugUnitTest
 
       - name: Upload phone APK
         id: phone

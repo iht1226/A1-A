@@ -12,7 +12,10 @@ class SensorControlReceiver : BroadcastReceiver() {
         val active = p != null && p.enabled && p.settings.smartEnabled && !p.earlyDelivered && !p.finalDelivered &&
             System.currentTimeMillis() < p.deadline && store.blockedSession() != p.id
         if (!active || System.currentTimeMillis() < p!!.sensorStart) {
-            context.stopService(Intent(context, SmartWindowService::class.java))
+            val testRunning = runCatching { dev.sleepalarm.diagnostics.DiagnosticArchive(context).use { a -> a.recent().any {
+                it.optBoolean("test") && it.optLong("stoppedAt") == 0L && System.currentTimeMillis() < it.optLong("plannedEnd")
+            } } }.getOrDefault(false)
+            if (!testRunning) context.stopService(Intent(context, SmartWindowService::class.java))
             if (!active) runCatching { HealthServices.getClient(context).passiveMonitoringClient.clearPassiveListenerServiceAsync() }
             return
         }
@@ -21,6 +24,9 @@ class SensorControlReceiver : BroadcastReceiver() {
             return
         }
         runCatching { context.startForegroundService(Intent(context, SmartWindowService::class.java)) }
-            .onFailure { store.status("스마트 분석 서비스 시작 제한: 일반 알람 유지 (${it.javaClass.simpleName})") }
+            .onFailure {
+                store.status("스마트 분석 서비스 시작 제한: 일반 알람 유지 (${it.javaClass.simpleName})")
+                SmartWindowService.recordStartFailure(context, CaptureSpec(p.id,p.sensorStart,p.windowStart,p.deadline,false), it.javaClass.simpleName)
+            }
     }
 }

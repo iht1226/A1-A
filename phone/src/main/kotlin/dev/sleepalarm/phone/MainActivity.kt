@@ -113,7 +113,10 @@ class MainActivity : ComponentActivity() {
                 Text("SLEEP / WAKE", style = MaterialTheme.typography.labelMedium, color = mint)
                 Text("수면 알람", style = MaterialTheme.typography.headlineLarge)
                 Text("Galaxy Watch7 · 개인용 MVP", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                TextButton(onClick = { startActivity(Intent(this@MainActivity, dev.sleepalarm.update.UpdateActivity::class.java)) }) { Text("앱 업데이트") }
+                Row {
+                    TextButton(onClick = { startActivity(Intent(this@MainActivity, dev.sleepalarm.update.UpdateActivity::class.java)) }) { Text("앱 업데이트") }
+                    TextButton(onClick = { startActivity(Intent(this@MainActivity, dev.sleepalarm.diagnostics.SensorDiagnosticsActivity::class.java)) }) { Text("센서 진단") }
+                }
             }
             PrimaryTabRow(selectedTabIndex = tab) {
                 listOf("기상 설정", "수면 기록", "연결 안내").forEachIndexed { i, title -> Tab(selected = tab == i, onClick = { tab = i }, text = { Text(title) }) }
@@ -218,17 +221,19 @@ class MainActivity : ComponentActivity() {
                     } }
                     item { Text("워치 자체 관측·알람 이력", style = MaterialTheme.typography.titleLarge) }
                     if (reports.isEmpty()) item { Text("워치에서 알람을 예약하고 기록을 전송하세요.") }
-                    items(reports.take(30), key = { "report-${it.id}" }) { r -> ReportCard(r) { refreshed, sleepy ->
+                    items(reports.take(30), key = { "report-${it.id}" }) { r -> Column {
+                        TextButton(onClick = { startActivity(Intent(this@MainActivity, dev.sleepalarm.diagnostics.SensorDiagnosticsActivity::class.java).putExtra("id", r.id)) }) { Text("이 기상의 예열·판단 관측 진단") }
+                        ReportCard(r) { refreshed, sleepy ->
                         val at = System.currentTimeMillis()
                         store.feedback(r.id, refreshed, sleepy, at)
                         reports = store.reports()
                         scope.launch { status = runCatching {
                             withTimeout(12_000) { sync.sendFeedback(r.id, refreshed, sleepy, at) }; "평가 저장·전송 요청됨"
                         }.getOrElse { it.message ?: "평가 로컬 저장됨 · 연결 후 새로고침으로 재전송" } }
-                    } }
+                    } } }
                     item { OutlinedButton(onClick = { scope.launch {
                         runCatching { withTimeout(12_000) { sync.deleteSyncedReports() } }
-                        store.clearReports(); reports = emptyList(); sleeps = emptyList()
+                        store.clearReports(); dev.sleepalarm.diagnostics.DiagnosticArchive(this@MainActivity).use { it.erase() }; reports = emptyList(); sleeps = emptyList()
                         healthStatus = "이 앱의 표시 기록을 지웠습니다. 워치 원본은 워치 기록 화면에서 별도로 삭제하세요."
                     } }) { Text("앱 기록 지우기") } }
                     item { OutlinedButton(onClick = { scope.launch { runCatching { health.revoke() }; store.sleepContext(SleepContext(recordedAt = System.currentTimeMillis())); runCatching { withTimeout(12_000) { sync.sendContext(store.sleepContext()) } }; canRead = false; sleeps = emptyList(); healthStatus = "Health Connect 권한 해제됨" } }) { Text("수면 읽기 권한 해제") } }
@@ -287,9 +292,19 @@ private fun SleepCard(s: SleepHistory, report: NightReport?) {
 
 @Composable
 private fun ReportCard(r: NightReport, save: (Int, Int) -> Unit) {
+    val diagnosticContext = androidx.compose.ui.platform.LocalContext.current
+    var diagnosticSummary by remember(r.id) { mutableStateOf("상세 센서 진단은 진단 버튼에서 확인하세요.") }
+    LaunchedEffect(r.id, r.motionBins, r.details.observationEnd) {
+        diagnosticSummary = withContext(Dispatchers.IO) {
+            runCatching { dev.sleepalarm.diagnostics.DiagnosticArchive(diagnosticContext).use { dev.sleepalarm.diagnostics.DiagnosticArchive.summary(it.get(r.id)) } }
+                .getOrDefault("진단 저장소를 읽지 못했습니다.")
+        }
+    }
     var refreshed by remember(r.id) { mutableIntStateOf(r.details.refreshed.takeIf { it > 0 } ?: 3) }
     var sleepy by remember(r.id) { mutableIntStateOf(r.details.sleepiness.takeIf { it > 0 } ?: 3) }
     Panel {
+        Text(diagnosticSummary)
+        Text("신뢰도 0은 움직임 관문에서 평가가 보류된 경우도 있습니다. 실제 심박 수신·품질은 센서 진단에서 확인하세요.")
         val d = r.details
         Text("최종 기상 ${dateTime(r.deadline)} · ${if (d.testAlarm) "시험 알람" else if (!d.smartScheduled) "일반/기존 기록" else d.algorithm.name}", style = MaterialTheme.typography.titleMedium)
         Text("예약 ${dateTime(r.armedAt)}\n첫 알람 요청 ${if (r.firstRingAt == 0L) "없음" else dateTime(r.firstRingAt)} · ${r.firstRingKind}\n출력 API 시작 ${if (d.outputStartedAt == 0L) "미확인" else dateTime(d.outputStartedAt)}\n첫 해제 ${if (d.firstDismissedAt == 0L) "없음" else dateTime(d.firstDismissedAt)}")
