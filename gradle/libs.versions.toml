@@ -1,0 +1,35 @@
+[versions]
+agp = "8.13.2"
+kotlin = "2.2.21"
+compose-bom = "2025.08.01"
+wear-compose = "1.5.4"
+activity = "1.10.1"
+core = "1.16.0"
+coroutines = "1.10.2"
+health = "1.1.0"
+connect = "1.1.0"
+wearable = "19.0.0"
+fragment = "1.8.9"
+[libraries]
+androidx-core = { module = "androidx.core:core-ktx", version.ref = "core" }
+androidx-activity = { module = "androidx.activity:activity-compose", version.ref = "activity" }
+androidx-fragment = { module = "androidx.fragment:fragment", version.ref = "fragment" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-foundation = { module = "androidx.compose.foundation:foundation" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+wear-material = { module = "androidx.wear.compose:compose-material", version.ref = "wear-compose" }
+wear-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "wear-compose" }
+health-services = { module = "androidx.health:health-services-client", version.ref = "health" }
+health-connect = { module = "androidx.health.connect:connect-client", version.ref = "connect" }
+wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "wearable" }
+coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutines" }
+coroutines-play = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
+junit = { module = "junit:junit", version = "4.13.2" }
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

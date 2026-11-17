@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.analysis.SustainedWakeGateTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-17T02:13:06.495Z" hostname="5b66162e9e2b" time="0.001">
+  <properties/>
+  <testcase name="negative evidence resets confirmation" classname="dev.sleepalarm.analysis.SustainedWakeGateTest" time="0.0"/>
+  <testcase name="clock regression starts a fresh confirmation" classname="dev.sleepalarm.analysis.SustainedWakeGateTest" time="0.0"/>
+  <testcase name="exactly sixty seconds of positive evaluations confirms" classname="dev.sleepalarm.analysis.SustainedWakeGateTest" time="0.0"/>
+  <testcase name="suspended polling cannot count unobserved time as continuous" classname="dev.sleepalarm.analysis.SustainedWakeGateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

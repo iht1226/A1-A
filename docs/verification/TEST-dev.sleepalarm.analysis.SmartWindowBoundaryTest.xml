@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.analysis.SmartWindowBoundaryTest" tests="153" skipped="0" failures="0" errors="0" timestamp="2026-11-17T02:13:06.207Z" hostname="5b66162e9e2b" time="0.283">
+  <properties/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=10min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=10min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=10min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.015"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=11min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=11min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=11min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.004"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=12min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=12min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=12min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.004"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=13min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=13min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=13min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.03"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=14min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=14min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.002"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=14min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=15min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.002"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=15min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=15min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=16min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=16min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.002"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=16min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.004"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=17min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=17min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=17min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=18min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=18min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=18min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=19min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=19min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=19min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=20min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=20min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.002"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=20min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=21min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=21min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=21min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.005"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=22min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=22min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=22min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.004"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=23min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=23min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.004"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=23min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.004"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=24min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=24min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=24min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=25min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=25min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.023"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=25min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.004"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=26min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=26min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.002"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=26min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=27min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=27min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=27min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.007"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=28min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=28min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=28min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=29min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=29min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=29min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=30min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=30min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=30min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=31min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=31min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=31min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=32min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=32min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=32min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=33min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=33min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=33min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=34min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=34min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=34min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=35min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=35min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=35min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=36min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=36min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=36min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=37min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=37min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=37min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=38min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=38min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=38min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=39min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=39min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=39min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=40min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=40min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=40min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=41min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=41min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=41min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=42min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=42min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=42min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.002"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=43min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=43min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=43min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=44min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=44min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=44min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.002"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=45min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=45min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=45min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=46min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=46min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=46min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=47min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=47min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=47min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=48min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=48min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=48min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=49min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=49min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=49min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=50min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=50min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=50min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=51min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=51min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=51min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=52min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=52min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=52min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=53min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=53min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=53min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=54min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=54min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=54min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=55min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=55min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=55min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=56min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=56min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=56min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=57min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=57min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=57min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.002"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=58min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=58min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.0"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=58min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.002"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=59min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=59min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=59min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <testcase name="shorter warmup never bypasses missing data gates[window=60min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="warmup boundaries and final deadline are respected in every window[window=60min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.001"/>
+  <testcase name="actual polling and sixty second confirmation can finish before every deadline[window=60min]" classname="dev.sleepalarm.analysis.SmartWindowBoundaryTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

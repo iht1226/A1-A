@@ -1,0 +1,18 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <uses-permission android:name="android.permission.BODY_SENSORS_BACKGROUND" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <application>
+        <service android:name=".HeartListenerService" android:exported="true"
+            android:permission="com.google.android.wearable.healthservices.permission.PASSIVE_DATA_BINDING" />
+        <service android:name=".SmartWindowService" android:exported="false" android:foregroundServiceType="health" />
+        <receiver android:name=".SensorControlReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="dev.sleepalarm.WINDOW" />
+                <action android:name="dev.sleepalarm.CHANGED" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
