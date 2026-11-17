@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="dev.sleepalarm.sensors.SensorAccessPolicyTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-17T02:23:55.546Z" hostname="5b66162e9e2b" time="0.036">
+<testsuite name="dev.sleepalarm.sensors.SensorAccessPolicyTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:12:48.842Z" hostname="d5a27e95d7a6" time="0.025">
   <properties/>
-  <testcase name="first request explains settings and unknown installer status honestly" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.034"/>
-  <testcase name="foreground permission must come first even with known installation restriction" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.0"/>
-  <testcase name="confirmed missing allowlist cannot prompt an impossible permission request" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.0"/>
-  <testcase name="allowlisted app still requires separate user grant" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.001"/>
-  <testcase name="granted permission takes precedence over stale restriction metadata" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.0"/>
+  <testcase name="first request explains settings and unknown installer status honestly" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.019"/>
+  <testcase name="foreground permission must come first even with known installation restriction" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.002"/>
+  <testcase name="confirmed missing allowlist cannot prompt an impossible permission request" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.001"/>
+  <testcase name="allowlisted app still requires separate user grant" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.0"/>
+  <testcase name="granted permission takes precedence over stale restriction metadata" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.001"/>
   <testcase name="denied or incomplete request is distinct from confirmed installer restriction" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.0"/>
-  <testcase name="older OS needs no separate background sensor permission" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.0"/>
+  <testcase name="older OS needs no separate background sensor permission" classname="dev.sleepalarm.sensors.SensorAccessPolicyTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

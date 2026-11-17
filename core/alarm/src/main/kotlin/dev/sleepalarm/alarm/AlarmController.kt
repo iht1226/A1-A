@@ -29,15 +29,22 @@ class AlarmController(private val context: Context) {
             check(canSchedule()) { "워치 설정에서 정확한 알람 권한을 허용하세요." }
             require(deadline > System.currentTimeMillis()) { "기상 시각이 이미 지났습니다." }
             val old = store.plan()
-            val next = AlarmPlan(UUID.randomUUID().toString(), System.currentTimeMillis(), deadline, settings)
+            val id = UUID.randomUUID().toString()
+            val day = Instant.ofEpochMilli(deadline).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+            val algorithm = if (saveUserSettings && settings.smartEnabled)
+                store.trialAlgorithm(settings.algorithmMode, day, id.hashCode() and 1 == 0) else AlgorithmId.ADAPTIVE_020
+            val next = AlarmPlan(id, System.currentTimeMillis(), deadline, settings, algorithm = algorithm)
             // Reserve the independent final alarm before any sensor-related work.
             reserve(next, FINAL, next.deadline)
             try { if (saveUserSettings) store.saveSettings(settings); store.savePlan(next) }
             catch (e: Exception) { cancelEvents(next); throw e }
+            if (saveUserSettings && settings.smartEnabled) runCatching { store.commitTrial(settings.algorithmMode, day, algorithm) }
             runCatching { store.alarmError(""); AlarmNotifications.cancelFallback(context) }
             old?.let(::cancelEvents)
             context.stopService(Intent(context, RingingService::class.java))
-            runCatching { store.putReport(NightReport(next.id, next.armedAt, next.deadline)) }
+            runCatching { store.putReport(NightReport(next.id, next.armedAt, next.deadline,
+                details = NightDetails(algorithm = algorithm, mode = settings.algorithmMode,
+                    smartScheduled = settings.smartEnabled, testAlarm = !saveUserSettings))) }
             scheduleWindow(next)
             changed()
             next
@@ -47,11 +54,16 @@ class AlarmController(private val context: Context) {
         val p = store.plan() ?: return@synchronized
         val next = AlarmTransitions.dismiss(p, nonce) ?: return@synchronized
         store.savePlan(next)
-        cancelEvents(p)
+        if (next.enabled) listOf(WINDOW, SNOOZE, RECOVER).forEach { cancel(p, it) } else cancelEvents(p)
         context.stopService(Intent(context, RingingService::class.java))
         runCatching { AlarmNotifications.cancelFallback(context) }
         runCatching { AlarmNotifications.vibrator(context).cancel() }
-        runCatching { store.updateReport(p.id) { it.copy(dismissedAt = System.currentTimeMillis()) } }
+        runCatching {
+            val now = System.currentTimeMillis()
+            store.updateReport(p.id) { it.copy(dismissedAt = now, details = it.details.copy(
+                firstDismissedAt = it.details.firstDismissedAt.takeIf { at -> at > 0 } ?: now)) }
+            store.event(p.id, p.ringKind?.name ?: "CANCEL", if (next.enabled) "DISMISS_KEEP_FINAL" else "DISMISS")
+        }
         changed()
     }
 
@@ -59,12 +71,13 @@ class AlarmController(private val context: Context) {
         val p = store.plan() ?: return@synchronized
         val next = AlarmTransitions.snooze(p, nonce, System.currentTimeMillis()) ?: return@synchronized
         check(canSchedule()) { "정확한 알람 권한이 필요합니다." }
-        reserve(p, SNOOZE, next.snoozeAt)
+        if (p.finalDelivered || next.snoozeAt < p.deadline) reserve(p, SNOOZE, next.snoozeAt)
         store.savePlan(next)
         // An early snooze does not cancel or move the original final deadline.
         context.stopService(Intent(context, RingingService::class.java))
         runCatching { AlarmNotifications.cancelFallback(context) }
         runCatching { AlarmNotifications.vibrator(context).cancel() }
+        runCatching { store.event(p.id, p.ringKind?.name ?: "", "SNOOZE_TO_${next.snoozeAt}") }
         changed()
     }
 
@@ -85,7 +98,7 @@ class AlarmController(private val context: Context) {
                 cancel(p, SNOOZE); ring(it, now)
             }
             SNOOZE -> AlarmTransitions.snoozeDelivery(p, id, at, now, UUID.randomUUID().toString())?.let { ring(it, now) }
-            WINDOW -> if (at == p.windowStart && now < p.deadline && !p.earlyDelivered && !p.finalDelivered) {
+            WINDOW -> if (at == p.sensorStart && now < p.deadline && !p.earlyDelivered && !p.finalDelivered) {
                 context.sendBroadcast(Intent(ACTION_WINDOW).setPackage(context.packageName))
             }
             RECOVER -> if (p.ringing) startRinging(p)
@@ -97,8 +110,10 @@ class AlarmController(private val context: Context) {
         // Alarm execution must not depend on optional history storage being healthy.
         startRinging(p)
         runCatching { store.updateReport(p.id) {
-            if (it.firstRingAt == 0L) it.copy(firstRingAt = now, firstRingKind = p.ringKind!!.name) else it
+            if (it.firstRingAt == 0L) it.copy(firstRingAt = now, firstRingKind = p.ringKind!!.name,
+                details = it.details.copy(observationEnd = now)) else it
         } }
+        runCatching { store.event(p.id, p.ringKind!!.name, "RING_REQUESTED", now) }
         changed()
     }
 
@@ -121,9 +136,10 @@ class AlarmController(private val context: Context) {
         when {
             p.ringing -> reserve(p, RECOVER, now + 2_000)
             p.snoozeAt > 0 -> {
-                val at = maxOf(now + 2_000, p.snoozeAt)
+                val requested = maxOf(now + 2_000, p.snoozeAt)
+                val at = if (!p.finalDelivered) minOf(requested, p.deadline) else requested
                 store.savePlan(p.copy(snoozeAt = at))
-                reserve(p, SNOOZE, at)
+                if (p.finalDelivered || at < p.deadline) reserve(p, SNOOZE, at)
             }
         }
         if (!p.finalDelivered) {
@@ -136,10 +152,10 @@ class AlarmController(private val context: Context) {
     private fun scheduleWindow(p: AlarmPlan) {
         if (!p.settings.smartEnabled || p.earlyDelivered || p.finalDelivered) return
         try {
-            if (System.currentTimeMillis() >= p.windowStart && System.currentTimeMillis() < p.deadline)
+            if (System.currentTimeMillis() >= p.sensorStart && System.currentTimeMillis() < p.deadline)
                 context.sendBroadcast(Intent(ACTION_WINDOW).setPackage(context.packageName))
-            else if (p.windowStart > System.currentTimeMillis())
-                manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, p.windowStart, pending(p, WINDOW, p.windowStart))
+            else if (p.sensorStart > System.currentTimeMillis())
+                manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, p.sensorStart, pending(p, WINDOW, p.sensorStart))
         } catch (e: Exception) { store.status("스마트 분석 예약 제한: 일반 알람 유지") }
     }
 
@@ -166,5 +182,6 @@ class AlarmController(private val context: Context) {
         const val RECOVER = "recover"
         const val ACTION_WINDOW = "dev.sleepalarm.WINDOW"
         const val ACTION_CHANGED = "dev.sleepalarm.CHANGED"
+        const val ACTION_REPORT_UPDATED = "dev.sleepalarm.REPORT_UPDATED"
     }
 }

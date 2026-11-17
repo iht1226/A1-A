@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.sensors.ObservationStorageTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:12:41.928Z" hostname="d5a27e95d7a6" time="6.899">
+  <properties/>
+  <testcase name="motion monitoring is allowed without heart permissions when activity recognition is granted" classname="dev.sleepalarm.sensors.ObservationStorageTest" time="4.036"/>
+  <testcase name="v1 upgrade preserves observations but marks unknown arrival times unavailable for causal replay" classname="dev.sleepalarm.sensors.ObservationStorageTest" time="2.712"/>
+  <testcase name="quality and actual arrival times round trip without sample count inflation" classname="dev.sleepalarm.sensors.ObservationStorageTest" time="0.151"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

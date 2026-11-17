@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="dev.sleepalarm.model.AlarmPolicyTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-17T00:53:26.685Z" hostname="5b66162e9e2b" time="0.046">
+<testsuite name="dev.sleepalarm.model.AlarmPolicyTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:05:51.908Z" hostname="d5a27e95d7a6" time="0.024">
   <properties/>
-  <testcase name="snoozing early beyond deadline keeps final alarm eligible" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.003"/>
+  <testcase name="early snooze is capped at deadline and final alarm stays eligible" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.0"/>
   <testcase name="smart ring obeys window and disabled setting" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.0"/>
   <testcase name="overdue final can recover and final snooze works" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.0"/>
   <testcase name="stale notification cannot dismiss or snooze a new ring" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.0"/>
   <testcase name="explicit dismiss cancels all future delivery" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.0"/>
-  <testcase name="next deadline handles midnight exact minute and DST gap" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.013"/>
+  <testcase name="next deadline handles midnight exact minute and DST gap" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.018"/>
   <testcase name="early ring preserves independent final deadline and unacknowledged final fires" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.0"/>
   <testcase name="wrong session and duplicate final events are ignored" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.0"/>
-  <testcase name="out of range settings are rejected" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.027"/>
+  <testcase name="out of range settings are rejected" classname="dev.sleepalarm.model.AlarmPolicyTest" time="0.004"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

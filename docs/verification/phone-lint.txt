@@ -121,7 +121,7 @@ coroutines = "1.10.2"
    application iconwill not show if your monochrome attribute is not also
    specified in android:roundIcon.
 
-/workspace/sleep-alarm/phone/src/main/kotlin/dev/sleepalarm/phone/MainActivity.kt:162: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+/workspace/sleep-alarm/phone/src/main/kotlin/dev/sleepalarm/phone/MainActivity.kt:187: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
                                 HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED -> runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.google.android.apps.healthdata"))) }.onFailure { healthStatus = "Health Connect 설치 또는 업데이트가 필요합니다." }
                                                                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

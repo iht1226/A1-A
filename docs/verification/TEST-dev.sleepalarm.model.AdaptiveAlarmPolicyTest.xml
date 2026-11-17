@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.model.AdaptiveAlarmPolicyTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:05:51.814Z" hostname="d5a27e95d7a6" time="0.09">
+  <properties/>
+  <testcase name="incomplete stages are not invented total sleep time" classname="dev.sleepalarm.model.AdaptiveAlarmPolicyTest" time="0.082"/>
+  <testcase name="backup option does not repeat a dismissed final alarm" classname="dev.sleepalarm.model.AdaptiveAlarmPolicyTest" time="0.002"/>
+  <testcase name="unanswered early ring retains final and acknowledgement cancels by default" classname="dev.sleepalarm.model.AdaptiveAlarmPolicyTest" time="0.0"/>
+  <testcase name="early snooze before and across deadline never overshoots final" classname="dev.sleepalarm.model.AdaptiveAlarmPolicyTest" time="0.0"/>
+  <testcase name="optional backup survives early acknowledgement but explicit cancel always cancels" classname="dev.sleepalarm.model.AdaptiveAlarmPolicyTest" time="0.0"/>
+  <testcase name="assignment modes are explicit and deterministic given the random draw" classname="dev.sleepalarm.model.AdaptiveAlarmPolicyTest" time="0.002"/>
+  <testcase name="default schedule collects 45 minutes before deadline and judges 30 minutes before" classname="dev.sleepalarm.model.AdaptiveAlarmPolicyTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

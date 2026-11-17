@@ -45,6 +45,7 @@ open class RingingService : Service() {
         }.onFailure { Log.e("SleepAlarm", "Alarm wake lock unavailable", it) }
         runCatching { ownsVibration = AlarmNotifications.vibrate(this, p.settings, true) }
             .onFailure { Log.e("SleepAlarm", "Alarm vibration unavailable", it) }
+        var audioStarted = false
         try {
             val audio = getSystemService(AudioManager::class.java)
             val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
@@ -61,6 +62,7 @@ open class RingingService : Service() {
                 isLooping = true
                 prepare()
                 start()
+                audioStarted = true
             }
         } catch (e: Exception) {
             // Keep the foreground notification and any continuous vibration; add an audible
@@ -68,6 +70,13 @@ open class RingingService : Service() {
             runCatching { player?.release() }; player = null
             AlarmFailureReporter.report(this, p, "알람 소리 재생", e)
             if (ownsVibration) runCatching { AlarmNotifications.vibrate(this, p.settings, true) }
+        }
+        if (ownsVibration || audioStarted) runCatching {
+            val now = System.currentTimeMillis()
+            SettingsStore(this).updateReport(p.id) { it.copy(details = it.details.copy(
+                outputStartedAt = it.details.outputStartedAt.takeIf { at -> at > 0 } ?: now)) }
+            SettingsStore(this).event(p.id, p.ringKind?.name ?: "", "OUTPUT_API_STARTED", now)
+            sendBroadcast(Intent(AlarmController.ACTION_REPORT_UPDATED).setPackage(packageName))
         }
         return START_STICKY
     }

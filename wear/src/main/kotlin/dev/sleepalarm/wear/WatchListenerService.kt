@@ -13,6 +13,28 @@ import java.util.concurrent.TimeUnit
 
 class WatchListenerService : WearableListenerService() {
     override fun onMessageReceived(event: MessageEvent) {
+        if (event.path == SyncProtocol.CONTEXT) {
+            runCatching {
+                val j = SyncProtocol.parse(event.data)
+                val now = System.currentTimeMillis()
+                require(j.getLong("sentAt") in now - 120_000..now + 30_000)
+                val raw = JsonCodec.context(j.getJSONObject("context"))
+                require(raw.recordedAt in 1..now + 30_000)
+                val value = raw.copy(recordedAt = minOf(raw.recordedAt, now))
+                require(value.nights == 0 || value.usable(now))
+                val store = SettingsStore(this)
+                if (value.recordedAt >= store.sleepContext().recordedAt) store.sleepContext(value)
+            }
+            return
+        }
+        if (event.path == SyncProtocol.FEEDBACK) {
+            runCatching {
+                val j = SyncProtocol.parse(event.data)
+                SettingsStore(this).feedback(j.getString("id"), j.getInt("refreshed"), j.getInt("sleepiness"), j.getLong("at"))
+                runBlocking { withTimeout(8_000) { WatchSync(this@WatchListenerService).publishReports() } }
+            }
+            return
+        }
         if (event.path == SyncProtocol.REFRESH) {
             runCatching { runBlocking { withTimeout(8_000) { WatchSync(this@WatchListenerService).publishReports() } } }
             return

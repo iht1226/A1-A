@@ -83,6 +83,10 @@ class MainActivity : ComponentActivity() {
                     if (!canRead) { sleeps = emptyList(); healthStatus = "Health Connect 수면 읽기 권한이 필요합니다." }
                     else {
                         sleeps = withContext(Dispatchers.IO) { health.readSamsungSleep(Instant.now().minus(Duration.ofDays(7)), Instant.now()) }
+                        val readAt = System.currentTimeMillis()
+                        store.reports().forEach { store.putReport(SleepSummaries.attach(it, sleeps, readAt)) }
+                        reports = store.reports()
+                        store.sleepContext(SleepSummaries.context(sleeps, readAt))
                         healthStatus = if (sleeps.isEmpty()) "지난 7일 삼성 헬스 수면 기록이 없습니다. 삼성 헬스의 Health Connect 쓰기 권한과 동기화를 확인하세요." else "삼성 헬스 · 최근 7일 ${sleeps.size}개 세션 (기상 후 동기화 기록)"
                     }
                 } catch (e: Exception) { sleeps = emptyList(); healthStatus = "기록 읽기 실패: ${e.message?.take(120)}" }
@@ -91,7 +95,13 @@ class MainActivity : ComponentActivity() {
         }
         LaunchedEffect(permissionVersion) {
             canRead = runCatching { health.granted() }.getOrDefault(false)
-            if (!canRead) sleeps = emptyList()
+            if (!canRead) {
+                sleeps = emptyList()
+                if (store.sleepContext().nights > 0) {
+                    store.sleepContext(SleepContext(recordedAt = System.currentTimeMillis()))
+                    runCatching { withTimeout(12_000) { sync.sendContext(store.sleepContext()) } }
+                }
+            }
         }
         LaunchedEffect(Unit) {
             runCatching { withTimeout(12_000) { sync.refresh() } }
@@ -122,7 +132,22 @@ class MainActivity : ComponentActivity() {
                         }
                         Text("스마트 범위 · ${settings.windowMinutes}분")
                         Slider(value = settings.windowMinutes.toFloat(), onValueChange = { save(settings.copy(windowMinutes = it.toInt().coerceIn(10, 60))) }, valueRange = 10f..60f, steps = 49, enabled = settings.smartEnabled)
-                        Text("심박과 움직임의 근거가 부족하면 최종 시각까지 기다립니다. 실시간 수면 단계는 판별하지 않습니다.", style = MaterialTheme.typography.bodySmall)
+                        Text("개인 기준선 대비 반복 움직임을 주로 보며 심박은 선택 보조 지표입니다. 기본은 45분 전 측정, 30분 전 판단입니다. 수면 단계를 분류하지 않습니다.", style = MaterialTheme.typography.bodySmall)
+                        Text("알고리즘과 개인 비교 시험", style = MaterialTheme.typography.titleMedium)
+                        AlgorithmMode.entries.forEach { mode ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(settings.algorithmMode == mode, { save(settings.copy(algorithmMode = mode)) })
+                                Text(when (mode) { AlgorithmMode.ADAPTIVE -> "적응형"; AlgorithmMode.LEGACY -> "기존 0.1.1"; AlgorithmMode.ALTERNATE -> "매일 번갈아 사용"; AlgorithmMode.RANDOM -> "날짜별 무작위 배정" })
+                            }
+                        }
+                        Text("교대·무작위는 선택한 경우에만 사용합니다. 날짜별 조건이 다르므로 결과를 일반화하지 마세요.", style = MaterialTheme.typography.bodySmall)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("조기 해제 후에도 정시 백업 유지", modifier = Modifier.weight(1f))
+                            Switch(settings.keepFinalAfterSmartDismiss, { save(settings.copy(keepFinalAfterSmartDismiss = it)) })
+                        }
+                        Text("보수 기준 ${"%.2f".format(settings.adaptiveThreshold)} · 높을수록 조기 판단을 줄입니다")
+                        Slider(settings.adaptiveThreshold.toFloat(), { save(settings.copy(adaptiveThreshold = it.toDouble().coerceIn(0.65, 0.90))) }, valueRange = 0.65f..0.90f)
+
                     } }
                     item { Panel {
                         Text("진동과 다시 알림", style = MaterialTheme.typography.titleMedium)
@@ -164,6 +189,10 @@ class MainActivity : ComponentActivity() {
                             }
                         }) { Text(if (canRead) "수면 권한 확인" else "수면 읽기 연결") }
                         OutlinedButton(onClick = refreshHealth, enabled = !busy) { Text("최근 7일 기록 읽기") }
+                        OutlinedButton(onClick = { scope.launch {
+                            status = runCatching { withTimeout(12_000) { sync.sendContext(store.sleepContext()) }; "개인화용 수면 요약 전송 요청됨" }.getOrElse { it.message ?: "연결 실패" }
+                        } }) { Text("수면 요약을 워치 개인화에 사용") }
+                        Text("완전한 단계 기록이 있는 최근 수면의 요약만 전송합니다. 심박 원본을 Health Connect에서 읽지 않습니다.", style = MaterialTheme.typography.bodySmall)
                         OutlinedButton(onClick = { scope.launch { status = runCatching { withTimeout(12_000) { sync.refresh() }; "워치 기록 새로고침 요청됨" }.getOrElse { it.message ?: "연결 실패" } } }) { Text("워치 관측 기록 받기") }
                         Text("수면 기록은 휴대전화에서만 읽습니다. 삼성 헬스의 실시간 수면 단계 API를 사용하지 않습니다.", style = MaterialTheme.typography.bodySmall)
                     } }
@@ -172,21 +201,42 @@ class MainActivity : ComponentActivity() {
                             .minByOrNull { abs(it.firstRingAt - sleep.end.toEpochMilli()) }
                         SleepCard(sleep, candidate)
                     }
+                    item { Panel {
+                        Text("개인 비교 시험 요약", style = MaterialTheme.typography.titleLarge)
+                        Text("선택한 교대·무작위 시험만 집계합니다. 무작위 배정은 일별 조건 차이를 없애지 않습니다.", style = MaterialTheme.typography.bodySmall)
+                        AlgorithmId.entries.forEach { algorithm ->
+                            val nights = reports.filter { it.details.smartScheduled && !it.details.testAlarm && it.firstRingAt > 0 &&
+                                it.details.mode in listOf(AlgorithmMode.ALTERNATE, AlgorithmMode.RANDOM) && it.details.algorithm == algorithm }
+                            val rated = nights.filter { it.details.refreshed in 1..5 && it.details.sleepiness in 1..5 }
+                            Text("$algorithm · ${nights.size}회 · 평가 ${rated.size}회 · 조기 ${nights.count { it.firstRingKind == "SMART" }}회")
+                            if (rated.isNotEmpty()) Text("개운함 평균 ${"%.1f".format(rated.map { it.details.refreshed }.average())} / 졸림 평균 ${"%.1f".format(rated.map { it.details.sleepiness }.average())}")
+                            val knownSleep = nights.filter { it.details.healthSleepMinutes >= 0 }
+                            if (knownSleep.isNotEmpty()) Text("삼성 참고 수면 평균 ${knownSleep.map { it.details.healthSleepMinutes }.average().toInt()}분 (${knownSleep.size}회)")
+                        }
+                        Text("우열 검정이나 수면 조건 보정 결과가 아닙니다. 실제 출력·해제·배터리·수면 기록의 누락은 각 이력에서 확인하세요.", style = MaterialTheme.typography.bodySmall)
+                    } }
                     item { Text("워치 자체 관측·알람 이력", style = MaterialTheme.typography.titleLarge) }
                     if (reports.isEmpty()) item { Text("워치에서 알람을 예약하고 기록을 전송하세요.") }
-                    items(reports.take(30), key = { "report-${it.id}" }) { ReportCard(it) }
+                    items(reports.take(30), key = { "report-${it.id}" }) { r -> ReportCard(r) { refreshed, sleepy ->
+                        val at = System.currentTimeMillis()
+                        store.feedback(r.id, refreshed, sleepy, at)
+                        reports = store.reports()
+                        scope.launch { status = runCatching {
+                            withTimeout(12_000) { sync.sendFeedback(r.id, refreshed, sleepy, at) }; "평가 저장·전송 요청됨"
+                        }.getOrElse { it.message ?: "평가 로컬 저장됨 · 연결 후 새로고침으로 재전송" } }
+                    } }
                     item { OutlinedButton(onClick = { scope.launch {
                         runCatching { withTimeout(12_000) { sync.deleteSyncedReports() } }
                         store.clearReports(); reports = emptyList(); sleeps = emptyList()
                         healthStatus = "이 앱의 표시 기록을 지웠습니다. 워치 원본은 워치 기록 화면에서 별도로 삭제하세요."
                     } }) { Text("앱 기록 지우기") } }
-                    item { OutlinedButton(onClick = { scope.launch { runCatching { health.revoke() }; canRead = false; sleeps = emptyList(); healthStatus = "Health Connect 권한 해제됨" } }) { Text("수면 읽기 권한 해제") } }
+                    item { OutlinedButton(onClick = { scope.launch { runCatching { health.revoke() }; store.sleepContext(SleepContext(recordedAt = System.currentTimeMillis())); runCatching { withTimeout(12_000) { sync.sendContext(store.sleepContext()) } }; canRead = false; sleeps = emptyList(); healthStatus = "Health Connect 권한 해제됨" } }) { Text("수면 읽기 권한 해제") } }
                     item { Text(status, style = MaterialTheme.typography.bodySmall) }
                 }
                 if (tab == 2) {
                     item { Panel {
                         Text("처음 사용하는 순서", style = MaterialTheme.typography.titleLarge)
-                        Text("1. 휴대전화와 워치에 같은 서명으로 빌드한 앱을 설치합니다.\n\n2. 워치 앱의 설정에서 알림과 정확한 알람 권한을 허용합니다. 스마트 분석은 심박 센서 허용 후 ‘항상 허용’을 별도로 설정합니다.\n\n3. 삼성 헬스에서 Health Connect 수면 쓰기를 켜고, 이 앱에서 수면 읽기를 허용합니다.\n\n4. 낮에 워치의 ‘2분 뒤 일반 알람 시험’으로 진동, 소리, 해제, 다시 알림을 확인합니다.\n\n5. 워치에서 직접 예약하거나 휴대전화에서 전송한 뒤 워치의 예약 시각을 확인합니다.")
+                        Text("1. 휴대전화와 워치에 같은 서명으로 빌드한 앱을 설치합니다.\n\n2. 워치 앱의 설정에서 알림과 정확한 알람 권한을 허용합니다. 움직임 분석 권한을 허용하면 심박 없이도 분석합니다. 심박 보조를 원하면 심박 센서 허용 후 ‘항상 허용’을 별도로 설정합니다.\n\n3. 삼성 헬스에서 Health Connect 수면 쓰기를 켜고, 이 앱에서 수면 읽기를 허용합니다.\n\n4. 낮에 워치의 ‘2분 뒤 일반 알람 시험’으로 진동, 소리, 해제, 다시 알림을 확인합니다.\n\n5. 워치에서 직접 예약하거나 휴대전화에서 전송한 뒤 워치의 예약 시각을 확인합니다.")
                     } }
                     item { Panel {
                         Text("MVP의 범위", style = MaterialTheme.typography.titleLarge)
@@ -235,9 +285,28 @@ private fun SleepCard(s: SleepHistory, report: NightReport?) {
 }
 
 @Composable
-private fun ReportCard(r: NightReport) = Panel {
-    Text("최종 기상 ${dateTime(r.deadline)}", style = MaterialTheme.typography.titleMedium)
-    Text("예약 ${dateTime(r.armedAt)}\n첫 알람 ${if (r.firstRingAt == 0L) "없음" else dateTime(r.firstRingAt)} · ${r.firstRingKind}")
-    Text("움직임 ${r.motionBins}구간 · 심박 ${r.heartSamples}회\n${r.decision}")
-    Text("자체 기록은 수면 단계·총 수면 시간을 산출하지 않습니다.", style = MaterialTheme.typography.bodySmall)
+private fun ReportCard(r: NightReport, save: (Int, Int) -> Unit) {
+    var refreshed by remember(r.id) { mutableIntStateOf(r.details.refreshed.takeIf { it > 0 } ?: 3) }
+    var sleepy by remember(r.id) { mutableIntStateOf(r.details.sleepiness.takeIf { it > 0 } ?: 3) }
+    Panel {
+        val d = r.details
+        Text("최종 기상 ${dateTime(r.deadline)} · ${if (d.testAlarm) "시험 알람" else if (!d.smartScheduled) "일반/기존 기록" else d.algorithm.name}", style = MaterialTheme.typography.titleMedium)
+        Text("예약 ${dateTime(r.armedAt)}\n첫 알람 요청 ${if (r.firstRingAt == 0L) "없음" else dateTime(r.firstRingAt)} · ${r.firstRingKind}\n출력 API 시작 ${if (d.outputStartedAt == 0L) "미확인" else dateTime(d.outputStartedAt)}\n첫 해제 ${if (d.firstDismissedAt == 0L) "없음" else dateTime(d.firstDismissedAt)}")
+        Text("동일 관측 비교\n기존 제안 ${if (d.legacySuggestedAt == 0L) "관측 내 없음" else dateTime(d.legacySuggestedAt)}\n적응형 제안 ${if (d.adaptiveSuggestedAt == 0L) "관측 내 없음" else dateTime(d.adaptiveSuggestedAt)}\n관측 종료 ${if (d.observationEnd > 0) dateTime(d.observationEnd) else "없음"} 이후는 비교 불가")
+        Text("기존 통과 등급 ${"%.2f".format(d.legacyConfidence)} / 적응 근거 지수 ${"%.2f".format(d.adaptiveConfidence)} · 서로 같은 확률 척도가 아닙니다.", style = MaterialTheme.typography.bodySmall)
+        Text("기존 근거: ${d.legacyReason}\n적응형 근거: ${d.adaptiveReason}", style = MaterialTheme.typography.bodySmall)
+        Text("움직임 신뢰 ${"%.2f".format(d.motionQuality)} / 심박 신뢰 ${"%.2f".format(d.heartQuality)} · 확률이 아닌 내부 품질 지표\n개인화 평가 ${d.personalizedNights}회 · 기준 조정 ${"%.3f".format(d.personalizationOffset)}")
+        Text("삼성 수면 합계 ${if (d.healthSleepMinutes < 0) "누락/불완전/미연결" else duration(d.healthSleepMinutes)} · 참고 후보 기록")
+        Text(if (d.batteryStart >= 0 && d.batteryEnd in 0..d.batteryStart) "센서 측정 구간 배터리 ${d.batteryStart} → ${d.batteryEnd}% (${d.batteryStart - d.batteryEnd}%p)" else "배터리 미완료/미지원/충전 상태")
+        Text("움직임 ${r.motionBins}구간 · 심박 ${r.heartSamples}회\n${r.decision}")
+        if (r.firstRingAt > 0) {
+            Text("기상 후 평가 · 1 낮음 ~ 5 높음")
+            Text("개운함 $refreshed/5")
+            Slider(refreshed.toFloat(), { refreshed = it.toInt().coerceIn(1, 5) }, valueRange = 1f..5f, steps = 3)
+            Text("졸림 $sleepy/5")
+            Slider(sleepy.toFloat(), { sleepy = it.toInt().coerceIn(1, 5) }, valueRange = 1f..5f, steps = 3)
+            Button(onClick = { save(refreshed, sleepy) }) { Text("평가 저장·워치 전송") }
+        }
+        Text("배정별 여러 날을 관찰하는 개인 비교입니다. 판단 차이나 일별 점수로 기상 효과의 우열을 증명하지 않습니다. 자체 관측은 총 수면 시간·수면 단계를 산출하지 않습니다.", style = MaterialTheme.typography.bodySmall)
+    }
 }

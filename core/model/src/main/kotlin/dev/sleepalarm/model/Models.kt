@@ -14,12 +14,16 @@ data class AlarmSettings(
     val amplitude: Int = 160,
     val pattern: VibrationPattern = VibrationPattern.GENTLE,
     val snoozeMinutes: Int = 5,
+    val keepFinalAfterSmartDismiss: Boolean = false,
+    val algorithmMode: AlgorithmMode = AlgorithmMode.ADAPTIVE,
+    val adaptiveThreshold: Double = 0.72,
 ) {
     init {
         require(hour in 0..23 && minute in 0..59)
         require(windowMinutes in 10..60)
         require(amplitude in 1..255)
         require(snoozeMinutes in 1..30)
+        require(adaptiveThreshold.isFinite() && adaptiveThreshold in 0.65..0.90)
     }
 
     fun nextDeadline(now: Instant, zone: ZoneId): Instant {
@@ -44,15 +48,17 @@ data class AlarmPlan(
     val snoozeAt: Long = 0,
     val ringNonce: String = "",
     val ringKind: RingKind? = null,
+    val algorithm: AlgorithmId = AlgorithmId.ADAPTIVE_020,
 ) {
     val windowStart: Long get() = deadline - settings.windowMinutes * 60_000L
+    val sensorStart: Long get() = windowStart - SensorSchedule.warmupMillis(settings.windowMinutes)
     val ringing: Boolean get() = ringNonce.isNotEmpty()
 }
 
 /** These are observations, never inferred REM/light/deep sleep stages. */
-data class MotionSample(val at: Long, val energy: Double, val coveredMillis: Long)
-data class HeartSample(val at: Long, val bpm: Double)
-data class WakeDecision(val wake: Boolean, val confidence: Double, val reason: String)
+data class MotionSample(val at: Long, val energy: Double, val coveredMillis: Long, val receivedAt: Long = at + 5_000)
+data class HeartSample(val at: Long, val bpm: Double, val quality: Double = 1.0, val receivedAt: Long = at)
+data class WakeDecision(val wake: Boolean, val confidence: Double, val reason: String, val evidence: WakeEvidence? = null)
 
 interface WakeEstimator {
     fun evaluate(now: Long, windowStart: Long, deadline: Long, motion: List<MotionSample>, heart: List<HeartSample>): WakeDecision
@@ -68,6 +74,7 @@ data class NightReport(
     val motionBins: Int = 0,
     val heartSamples: Int = 0,
     val decision: String = "관측 데이터 없음",
+    val details: NightDetails = NightDetails(),
 )
 
 enum class HistoricalStage { UNKNOWN, AWAKE, SLEEPING, LIGHT, DEEP, REM, OUT_OF_BED }

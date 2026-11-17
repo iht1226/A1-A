@@ -14,3 +14,8 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation("org.robolectric:robolectric:4.14.1")
 }
+
+// Use Maven Central's canonical endpoint for Robolectric runtime SDK jars.
+tasks.withType<Test>().configureEach {
+    systemProperty("robolectric.dependency.repo.url", "https://repo.maven.apache.org/maven2")
+}

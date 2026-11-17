@@ -1,16 +1,19 @@
 /workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:30: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
     fun alarmError(message: String) { alarm.edit().putString("alarmError", message).commit() }
                                                                                     ~~~~~~~~
-/workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:53: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
+/workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:59: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
     fun ack(message: String) { if (unlocked) history.edit().putString("ack", message).commit() }
                                                                                       ~~~~~~~~
-/workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:54: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
+/workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:60: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
     fun pendingRequest(id: String) { if (unlocked) history.edit().putString("request", id).commit() }
                                                                                            ~~~~~~~~
-/workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:56: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
-    fun clearReports() { if (unlocked) history.edit().remove("reports").commit() }
-                                                                        ~~~~~~~~
-/workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:58: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
+/workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:62: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
+    fun clearReports() { if (unlocked) history.edit().remove("reports").remove("sleepContext").commit() }
+                                                                                               ~~~~~~~~
+/workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:66: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
+    fun sleepContext(value: SleepContext) { if (unlocked) history.edit().putString("sleepContext", JsonCodec.context(value).toString()).commit() }
+                                                                                                                                        ~~~~~~~~
+/workspace/sleep-alarm/core/settings/src/main/kotlin/dev/sleepalarm/settings/SettingsStore.kt:91: Warning: Consider using apply() instead; commit writes its data to persistent storage immediately, whereas apply will handle it in the background [ApplySharedPref]
     fun blockSmart(id: String) { if (unlocked) history.edit().putString("blockedSession", id).commit() }
                                                                                               ~~~~~~~~
 
@@ -19,4 +22,4 @@
    commit blocks and writes its data to persistent storage immediately, apply
    will handle it in the background.
 
-0 errors, 5 warnings
+0 errors, 6 warnings

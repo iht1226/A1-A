@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.alarm.AdaptiveControllerTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:12:34.921Z" hostname="d5a27e95d7a6" time="4.727">
+  <properties/>
+  <testcase name="ordinary final alarm needs neither phone connectivity nor sensor service" classname="dev.sleepalarm.alarm.AdaptiveControllerTest" time="4.115"/>
+  <testcase name="old settings and armed plans migrate without changing an armed legacy algorithm" classname="dev.sleepalarm.alarm.AdaptiveControllerTest" time="0.071"/>
+  <testcase name="alternating trial is frozen for rebooking reboot and next day" classname="dev.sleepalarm.alarm.AdaptiveControllerTest" time="0.083"/>
+  <testcase name="new reports round trip and older updates cannot erase phone annotations" classname="dev.sleepalarm.alarm.AdaptiveControllerTest" time="0.057"/>
+  <testcase name="test alarm does not consume the next trial assignment" classname="dev.sleepalarm.alarm.AdaptiveControllerTest" time="0.086"/>
+  <testcase name="early snooze reaching deadline does not reserve a later or duplicate alarm" classname="dev.sleepalarm.alarm.AdaptiveControllerTest" time="0.096"/>
+  <testcase name="random trial is not redrawn on same date or restoration" classname="dev.sleepalarm.alarm.AdaptiveControllerTest" time="0.106"/>
+  <testcase name="early acknowledgement can retain the independent final and explicit cancel removes it" classname="dev.sleepalarm.alarm.AdaptiveControllerTest" time="0.109"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.WINDOW pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.WINDOW pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+]]></system-err>
+</testsuite>

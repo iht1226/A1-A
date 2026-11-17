@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.analysis.PersonalizationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:11:08.391Z" hostname="d5a27e95d7a6" time="0.007">
+  <properties/>
+  <testcase name="invalid adaptive parameters fail closed" classname="dev.sleepalarm.analysis.PersonalizationTest" time="0.002"/>
+  <testcase name="eight eligible nights adjust within a bounded range" classname="dev.sleepalarm.analysis.PersonalizationTest" time="0.003"/>
+  <testcase name="future feedback test alarms and poor quality cannot train past decisions" classname="dev.sleepalarm.analysis.PersonalizationTest" time="0.0"/>
+  <testcase name="not enough eligible feedback keeps default threshold" classname="dev.sleepalarm.analysis.PersonalizationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

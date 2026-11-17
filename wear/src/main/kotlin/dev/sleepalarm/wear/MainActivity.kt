@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
         permissionRevision++
         permissionMessage = SensorPermissionStatus.inspect(this).explanation
     }
+    private val motionPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { permissionRevision++ }
     private val notifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
     private var permissionMessage by mutableStateOf("")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity() {
                     permission = { which ->
                         when (which) {
                             "notification" -> if (Build.VERSION.SDK_INT >= 33) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            "motion" -> motionPermission.launch(Manifest.permission.ACTIVITY_RECOGNITION)
                             "body" -> foreground.launch(Manifest.permission.BODY_SENSORS)
                             "background" -> {
                                 val access = SensorPermissionStatus.inspect(this)
@@ -95,7 +97,7 @@ class MainActivity : ComponentActivity() {
                 plan = store.plan(); status = store.status(); reports = store.reports()
                 exact = alarm.canSchedule()
                 notify = getSystemService(NotificationManager::class.java).areNotificationsEnabled()
-                sensors = PassiveHeartMonitor.permitted(this@MainActivity)
+                sensors = MonitoringAccess.canMonitor(this@MainActivity)
                 alarmError = store.alarmError()
                 delay(1_000)
             }
@@ -131,11 +133,17 @@ class MainActivity : ComponentActivity() {
                     item { Chip(onClick = { alarm.dismiss(); plan = store.plan(); message = "예약 해제됨" }, label = { Text("예약 해제") }, colors = ChipDefaults.secondaryChipColors(), modifier = Modifier.fillMaxWidth()) }
                 }
                 item { Text(status, style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
+                item { Text("측정 ${time(plan?.sensorStart ?: settings.nextDeadline(Instant.now(), ZoneId.systemDefault()).toEpochMilli() - (settings.windowMinutes * 60_000L + SensorSchedule.warmupMillis(settings.windowMinutes)))}부터 · 판단은 기상 ${settings.windowMinutes}분 전부터", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 if (!sensors && settings.smartEnabled) item { Text(sensorAccess.explanation, style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
             }
             if (tab == 1) {
                 item { ToggleChip(checked = settings.smartEnabled, onCheckedChange = { change(settings.copy(smartEnabled = it)) },
                     label = { Text("스마트 기상") }, toggleControl = { Switch(checked = settings.smartEnabled) }, modifier = Modifier.fillMaxWidth()) }
+                item { Chip(onClick = { change(settings.copy(algorithmMode = AlgorithmMode.entries[(settings.algorithmMode.ordinal + 1) % AlgorithmMode.entries.size])) }, label = { Text("방식: ${modeLabel(settings.algorithmMode)}") }, modifier = Modifier.fillMaxWidth()) }
+                item { Text("교대·무작위 시험은 선택 시에만 적용됩니다. 같은 기상 날짜의 재예약과 재부팅은 배정을 유지합니다.", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
+                item { ToggleChip(checked = settings.keepFinalAfterSmartDismiss, onCheckedChange = { change(settings.copy(keepFinalAfterSmartDismiss = it)) }, label = { Text("조기 해제 후 정시 백업") }, toggleControl = { Switch(checked = settings.keepFinalAfterSmartDismiss) }, modifier = Modifier.fillMaxWidth()) }
+                item { Adjust("보수 기준", "%.2f".format(settings.adaptiveThreshold), { change(settings.copy(adaptiveThreshold = (settings.adaptiveThreshold - 0.02).coerceAtLeast(0.65))) }, { change(settings.copy(adaptiveThreshold = (settings.adaptiveThreshold + 0.02).coerceAtMost(0.90))) }) }
+                item { Text("높을수록 조기 기상을 더 보수적으로 판단합니다. 최종 시각은 바뀌지 않습니다.", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { Adjust("범위", "${settings.windowMinutes}분", { change(settings.copy(windowMinutes = (settings.windowMinutes - 5).coerceAtLeast(10))) }, { change(settings.copy(windowMinutes = (settings.windowMinutes + 5).coerceAtMost(60))) }) }
                 item { Adjust("진동", "${settings.amplitude}", { change(settings.copy(amplitude = (settings.amplitude - 32).coerceAtLeast(1))) }, { change(settings.copy(amplitude = (settings.amplitude + 32).coerceAtMost(255))) }) }
                 item { Chip(onClick = { change(settings.copy(pattern = VibrationPattern.entries[(settings.pattern.ordinal + 1) % 3])) }, label = { Text("패턴: ${patternName(settings.pattern)}") }, modifier = Modifier.fillMaxWidth()) }
@@ -146,6 +154,8 @@ class MainActivity : ComponentActivity() {
                 item { Text(sensorAccess.explanation, style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { ActionChip("알림 권한", { permission("notification") }) }
                 item { ActionChip("정확한 알람 권한", { permission("exact") }) }
+                item { ActionChip("움직임 분석 권한", { permission("motion") }) }
+                item { Text("움직임 권한만으로도 분석할 수 있습니다. 심박은 선택 보조 지표입니다.", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { ActionChip("1. 심박 센서 허용", { permission("body") }) }
                 item { ActionChip("2. 센서 항상 허용", { permission("background") }) }
                 item { ActionChip("전체 화면 알람 허용", { permission("fullscreen") }) }
@@ -159,10 +169,11 @@ class MainActivity : ComponentActivity() {
             if (tab == 2) {
                 item { Text("자체 기록은 관측·알람 이력입니다. 총 수면 시간과 수면 단계를 측정하지 않습니다.", textAlign = TextAlign.Center) }
                 if (reports.isEmpty()) item { Text("아직 기록이 없습니다.") }
-                reports.take(7).forEach { r -> item { Text(
-                    "${time(r.deadline)}\n첫 알람 ${if (r.firstRingAt == 0L) "없음" else time(r.firstRingAt)}\n움직임 ${r.motionBins}개 · 심박 ${r.heartSamples}개\n${r.decision}",
-                    style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center,
-                ) } }
+                reports.take(7).forEach { r -> item { WatchReport(r) { refreshed, sleepy ->
+                    store.feedback(r.id, refreshed, sleepy)
+                    scope.launch { runCatching { WatchSync(this@MainActivity).publishReports() } }
+                    message = "평가 저장됨 · 기상 효과의 우열을 증명하는 결과는 아닙니다."
+                } } }
                 item { ActionChip("휴대전화에 기록 전송", { scope.launch { runCatching { WatchSync(this@MainActivity).publishReports() }.onSuccess { message = "전송 요청 완료" }.onFailure { message = "연결 확인 후 다시 시도하세요." } } }) }
                 item { ActionChip("자체 기록 삭제", { scope.launch {
                     runCatching { WatchSync(this@MainActivity).deleteSyncedReports() }
@@ -187,5 +198,23 @@ private fun Adjust(label: String, value: String, decrease: () -> Unit, increase:
         Button(onClick = decrease, modifier = Modifier.size(38.dp)) { Text("−") }
         Text("$label $value", modifier = Modifier.width(80.dp), textAlign = TextAlign.Center)
         Button(onClick = increase, modifier = Modifier.size(38.dp)) { Text("+") }
+    }
+}
+
+private fun modeLabel(mode: AlgorithmMode) = when (mode) { AlgorithmMode.ADAPTIVE -> "적응형"; AlgorithmMode.LEGACY -> "기존 0.1.1"; AlgorithmMode.ALTERNATE -> "매일 교대 시험"; AlgorithmMode.RANDOM -> "무작위 시험" }
+
+@Composable
+private fun WatchReport(r: NightReport, save: (Int, Int) -> Unit) {
+    var refreshed by remember(r.id) { mutableIntStateOf(r.details.refreshed.takeIf { it > 0 } ?: 3) }
+    var sleepy by remember(r.id) { mutableIntStateOf(r.details.sleepiness.takeIf { it > 0 } ?: 3) }
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("${time(r.deadline)} · ${r.details.algorithm}\n첫 알람 ${if (r.firstRingAt == 0L) "없음" else time(r.firstRingAt)}", textAlign = TextAlign.Center)
+        Text("기존 제안 ${if (r.details.legacySuggestedAt == 0L) "관측 내 없음" else time(r.details.legacySuggestedAt)}\n적응형 제안 ${if (r.details.adaptiveSuggestedAt == 0L) "관측 내 없음" else time(r.details.adaptiveSuggestedAt)}\n관측 종료 이후는 비교 불가", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)
+        Text("움직임 신뢰 ${"%.2f".format(r.details.motionQuality)} · 심박 ${"%.2f".format(r.details.heartQuality)}\n${r.decision}", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center)
+        if (r.firstRingAt > 0) {
+            Adjust("개운함", "$refreshed/5", { refreshed = (refreshed - 1).coerceAtLeast(1) }, { refreshed = (refreshed + 1).coerceAtMost(5) })
+            Adjust("졸림", "$sleepy/5", { sleepy = (sleepy - 1).coerceAtLeast(1) }, { sleepy = (sleepy + 1).coerceAtMost(5) })
+            ActionChip("기상 평가 저장", { save(refreshed, sleepy) })
+        }
     }
 }

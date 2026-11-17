@@ -22,17 +22,19 @@ class HeartListenerService : PassiveListenerService() {
                 val timeSinceBoot = it.timeDurationFromBoot.toMillis()
                 val at = bootAt + timeSinceBoot
                 if (timeSinceBoot !in 0..elapsed || at !in p.armedAt..minOf(now, p.deadline) ||
-                    !it.value.isFinite() || it.value !in 35.0..180.0 ||
-                    quality !in setOf(HeartRateAccuracy.SensorStatus.ACCURACY_MEDIUM, HeartRateAccuracy.SensorStatus.ACCURACY_HIGH)) null
-                else HeartSample(at, it.value)
+                    !it.value.isFinite() || it.value !in 35.0..180.0) null
+                else HeartSample(at, it.value, when (quality) {
+                    HeartRateAccuracy.SensorStatus.ACCURACY_HIGH -> 1.0
+                    HeartRateAccuracy.SensorStatus.ACCURACY_MEDIUM -> 0.75
+                    HeartRateAccuracy.SensorStatus.ACCURACY_LOW -> 0.25
+                    else -> 0.0
+                }, now)
             }
             SensorDatabase(this).use { db -> db.addHeart(p.id, samples); db.prune(now) }
         }.onFailure { SettingsStore(this).status("심박 기록 실패: 일반 알람 유지") }
     }
     override fun onPermissionLost() {
         val store = SettingsStore(this)
-        store.plan()?.let { store.blockSmart(it.id) }
-        store.status("심박 권한 취소됨: 이번 조기 판단 중지, 일반 알람 유지")
-        stopService(Intent(this, SmartWindowService::class.java))
+        store.status("심박 권한 취소됨: 허용된 움직임 분석만 사용, 최종 알람 유지")
     }
 }

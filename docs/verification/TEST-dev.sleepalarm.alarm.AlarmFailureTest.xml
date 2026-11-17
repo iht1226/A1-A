@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="dev.sleepalarm.alarm.AlarmFailureTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-17T02:21:44.380Z" hostname="5b66162e9e2b" time="0.75">
+<testsuite name="dev.sleepalarm.alarm.AlarmFailureTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:12:40.052Z" hostname="d5a27e95d7a6" time="0.81">
   <properties/>
-  <testcase name="null service start result is surfaced instead of silently ignored" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.237"/>
-  <testcase name="sensor updates cannot hide an alarm failure" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.083"/>
-  <testcase name="both fallback paths unavailable are persisted rather than silently ignored" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.067"/>
-  <testcase name="notification denial still attempts vibration and exposes limitations" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.038"/>
-  <testcase name="illegal state during foreground promotion does not crash or restart loop" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.065"/>
-  <testcase name="dismiss and snooze remove fallback notifications with valid nonce" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.06"/>
+  <testcase name="null service start result is surfaced instead of silently ignored" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.221"/>
+  <testcase name="sensor updates cannot hide an alarm failure" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.056"/>
+  <testcase name="both fallback paths unavailable are persisted rather than silently ignored" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.046"/>
+  <testcase name="notification denial still attempts vibration and exposes limitations" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.081"/>
+  <testcase name="illegal state during foreground promotion does not crash or restart loop" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.114"/>
+  <testcase name="dismiss and snooze remove fallback notifications with valid nonce" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.123"/>
   <testcase name="caller startForegroundService denial preserves final reservation and reports fallback" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.062"/>
-  <testcase name="security exception during startForeground is handled inside service" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.045"/>
-  <testcase name="blocked fallback channel does not block direct vibration" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.09"/>
+  <testcase name="security exception during startForeground is handled inside service" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.056"/>
+  <testcase name="blocked fallback channel does not block direct vibration" classname="dev.sleepalarm.alarm.AlarmFailureTest" time="0.047"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[Intent = Intent { act=dev.sleepalarm.WINDOW pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
 Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []

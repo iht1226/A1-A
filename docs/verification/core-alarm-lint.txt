@@ -22,10 +22,10 @@
 
    https://goo.gle/UnsafeProtectedBroadcastReceiver
 
-/workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmController.kt:154: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+/workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmController.kt:170: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
             data = Uri.parse("sleepalarm://alarm/${p.id}/$event")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmController.kt:154: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+/workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmController.kt:170: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
             data = Uri.parse("sleepalarm://alarm/${p.id}/$event")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmNotifications.kt:33: Warning: Use the KTX extension function String.toUri instead? [UseKtx]

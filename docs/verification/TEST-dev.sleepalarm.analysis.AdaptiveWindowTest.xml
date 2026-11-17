@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.analysis.AdaptiveWindowTest" tests="51" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:11:08.032Z" hostname="d5a27e95d7a6" time="0.307">
+  <properties/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=10]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.006"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=11]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=12]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=13]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.002"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=14]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=15]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.039"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=16]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.002"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=17]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.002"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=18]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.002"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=19]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.008"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=20]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.002"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=21]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.002"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=22]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.002"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=23]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.002"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=24]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=25]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=26]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=27]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=28]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=29]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=30]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=31]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=32]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.002"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=33]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.004"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=34]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=35]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=36]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.043"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=37]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=38]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=39]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=40]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.004"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=41]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=42]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.004"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=43]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.004"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=44]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.005"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=45]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.005"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=46]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.005"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=47]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.004"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=48]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.005"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=49]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.04"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=50]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=51]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=52]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=53]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.004"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=54]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.006"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=55]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.003"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=56]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.004"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=57]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.005"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=58]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.004"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=59]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.005"/>
+  <testcase name="all configured windows have causal warmup and a motion only decision before deadline[adaptiveWindow=60]" classname="dev.sleepalarm.analysis.AdaptiveWindowTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

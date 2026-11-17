@@ -14,6 +14,8 @@ object SyncProtocol {
     const val ACK = "/sleep/v1/ack"
     const val REFRESH = "/sleep/v1/refresh"
     const val REPORTS = "/sleep/v1/reports/"
+    const val CONTEXT = "/sleep/v2/context"
+    const val FEEDBACK = "/sleep/v2/feedback"
     fun bytes(json: JSONObject): ByteArray = json.toString().toByteArray(Charsets.UTF_8)
     fun parse(data: ByteArray): JSONObject {
         require(data.size <= 64_000)
@@ -42,6 +44,23 @@ class WatchSync(private val context: Context) {
         nodes.forEach { Wearable.getMessageClient(context).sendMessage(it.id, SyncProtocol.REFRESH, byteArrayOf()).await() }
         val items = Wearable.getDataClient(context).dataItems.await()
         try { items.forEach { ingest(it) } } finally { items.release() }
+        SettingsStore(context).reports().filter { it.details.feedbackAt > 0 }.forEach {
+            sendFeedback(it.id, it.details.refreshed, it.details.sleepiness, it.details.feedbackAt)
+        }
+        val summary = SettingsStore(context).sleepContext()
+        if (summary.recordedAt > 0) sendContext(summary)
+    }
+    suspend fun sendContext(summary: SleepContext) {
+        val nodes = Wearable.getNodeClient(context).connectedNodes.await()
+        check(nodes.size == 1) { "연결된 워치가 1대여야 합니다. 요약은 로컬에 저장되어 있습니다." }
+        val j = JSONObject().put("version", 1).put("sentAt", System.currentTimeMillis()).put("context", JsonCodec.context(summary))
+        Wearable.getMessageClient(context).sendMessage(nodes.single().id, SyncProtocol.CONTEXT, SyncProtocol.bytes(j)).await()
+    }
+    suspend fun sendFeedback(id: String, refreshed: Int, sleepiness: Int, at: Long) {
+        val nodes = Wearable.getNodeClient(context).connectedNodes.await()
+        check(nodes.size == 1) { "평가는 로컬에 저장됐습니다. 워치 연결 후 기록 새로고침으로 재전송하세요." }
+        val j = JSONObject().put("version", 1).put("id", id).put("refreshed", refreshed).put("sleepiness", sleepiness).put("at", at)
+        Wearable.getMessageClient(context).sendMessage(nodes.single().id, SyncProtocol.FEEDBACK, SyncProtocol.bytes(j)).await()
     }
     suspend fun publishReports() {
         SettingsStore(context).reports().forEach { r ->

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-17T02:13:06.094Z" hostname="5b66162e9e2b" time="0.071">
+<testsuite name="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:11:08.348Z" hostname="d5a27e95d7a6" time="0.006">
   <properties/>
-  <testcase name="motion alone and heart alone are insufficient" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.047"/>
-  <testcase name="actual irregular timestamps are accepted with sufficient coverage" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.001"/>
-  <testcase name="no data or a missing modality never triggers early wake" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.003"/>
+  <testcase name="motion alone and heart alone are insufficient" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.001"/>
+  <testcase name="actual irregular timestamps are accepted with sufficient coverage" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.0"/>
+  <testcase name="no data or a missing modality never triggers early wake" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.0"/>
   <testcase name="stale heart samples and future samples cannot trigger wake" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.001"/>
-  <testcase name="extreme or nonfinite observations are rejected" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.002"/>
-  <testcase name="sustained joint evidence can recommend wake without claiming a sleep stage" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.007"/>
-  <testcase name="bursty callbacks and duplicates do not create coverage" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.004"/>
+  <testcase name="extreme or nonfinite observations are rejected" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.001"/>
+  <testcase name="sustained joint evidence can recommend wake without claiming a sleep stage" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.001"/>
+  <testcase name="bursty callbacks and duplicates do not create coverage" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.0"/>
   <testcase name="accelerometer gaps do not count as stillness" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.001"/>
-  <testcase name="outside window and insufficient baseline always hold" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.005"/>
+  <testcase name="outside window and insufficient baseline always hold" classname="dev.sleepalarm.analysis.ConservativeWakeEstimatorTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

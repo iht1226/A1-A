@@ -16,10 +16,10 @@ class AlarmPolicyTest {
         assertEquals(RingKind.FINAL, final.ringKind)
         assertTrue(final.finalDelivered)
     }
-    @Test fun `snoozing early beyond deadline keeps final alarm eligible`() {
+    @Test fun `early snooze is capped at deadline and final alarm stays eligible`() {
         val smart = AlarmTransitions.smart(plan(), "night", deadline - 60_000, "early")!!
         val snoozed = AlarmTransitions.snooze(smart, "early", deadline - 30_000)!!
-        assertTrue(snoozed.snoozeAt > deadline)
+        assertEquals(deadline, snoozed.snoozeAt)
         val final = AlarmTransitions.final(snoozed, "night", deadline, deadline, "final")!!
         assertEquals(0L, final.snoozeAt)
         assertNull(AlarmTransitions.snoozeDelivery(final, "night", snoozed.snoozeAt, snoozed.snoozeAt, "late"))

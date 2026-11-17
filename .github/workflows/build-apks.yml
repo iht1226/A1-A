@@ -39,6 +39,9 @@ jobs:
       - name: Build phone and watch APKs with project Wrapper
         run: ./gradlew --no-daemon --stacktrace :phone:assembleDebug :wear:assembleDebug
 
+      - name: Test alarm safety and causal adaptive decisions
+        run: ./gradlew --no-daemon --stacktrace :core:model:test :core:analysis:test :core:alarm:testDebugUnitTest :core:sensors:testDebugUnitTest
+
       - name: Upload phone APK
         id: phone
         uses: actions/upload-artifact@v4

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="dev.sleepalarm.alarm.AlarmControllerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-17T02:21:39.050Z" hostname="5b66162e9e2b" time="5.296">
+<testsuite name="dev.sleepalarm.alarm.AlarmControllerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-17T11:12:39.654Z" hostname="d5a27e95d7a6" time="0.386">
   <properties/>
-  <testcase name="restore receiver recreates pending alarm from persistent watch state" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="4.709"/>
-  <testcase name="failed test reservation also leaves saved settings unchanged" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.058"/>
-  <testcase name="dismiss removes final reservation and stale old session cannot ring" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.158"/>
-  <testcase name="revoked exact permission cannot replace an existing reservation" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.112"/>
-  <testcase name="final is an alarm clock even with smart sensors disabled" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.094"/>
-  <testcase name="smart ringing leaves final alarm scheduled" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.087"/>
-  <testcase name="test snapshot never overwrites any saved preferences even after reopening store" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.076"/>
+  <testcase name="restore receiver recreates pending alarm from persistent watch state" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.063"/>
+  <testcase name="failed test reservation also leaves saved settings unchanged" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.033"/>
+  <testcase name="dismiss removes final reservation and stale old session cannot ring" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.064"/>
+  <testcase name="revoked exact permission cannot replace an existing reservation" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.04"/>
+  <testcase name="final is an alarm clock even with smart sensors disabled" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.061"/>
+  <testcase name="smart ringing leaves final alarm scheduled" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.054"/>
+  <testcase name="test snapshot never overwrites any saved preferences even after reopening store" classname="dev.sleepalarm.alarm.AlarmControllerTest" time="0.069"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
 Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []

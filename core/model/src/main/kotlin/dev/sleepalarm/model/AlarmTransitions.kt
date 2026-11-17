@@ -20,11 +20,15 @@ object AlarmTransitions {
 
     fun snooze(p: AlarmPlan, nonce: String, now: Long): AlarmPlan? {
         if (!p.enabled || !p.ringing || p.ringNonce != nonce) return null
-        return p.copy(snoozeAt = now + p.settings.snoozeMinutes * 60_000L, ringNonce = "", ringKind = null)
+        val requested = now + p.settings.snoozeMinutes * 60_000L
+        val at = if (!p.finalDelivered) minOf(requested, p.deadline) else requested
+        return p.copy(snoozeAt = at, ringNonce = "", ringKind = null)
     }
 
     fun dismiss(p: AlarmPlan, nonce: String?): AlarmPlan? {
         if (nonce != null && (!p.ringing || p.ringNonce != nonce)) return null
+        if (nonce != null && !p.finalDelivered && p.earlyDelivered && p.settings.keepFinalAfterSmartDismiss)
+            return p.copy(ringNonce = "", ringKind = null, snoozeAt = 0)
         return p.copy(enabled = false, ringNonce = "", ringKind = null, snoozeAt = 0)
     }
 }
