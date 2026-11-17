@@ -66,6 +66,14 @@ class UpdatePolicyTest {
         assertTrue(UpdateInstaller.canInstall(p.copy(enabled = false), boundary))
         assertTrue(UpdateInstaller.canInstall(null, boundary))
     }
+    @Test fun `prepared watch APK has a content URI for grant-only manual fallback`() {
+        val repo = UpdateRepository(app)
+        repo.file("wear").writeBytes(byteArrayOf(1,2,3))
+        val uri = androidx.core.content.FileProvider.getUriForFile(app, "${app.packageName}.updates", repo.file("wear"))
+        assertEquals("content", uri.scheme)
+        assertTrue(uri.path!!.endsWith("wear.apk"))
+        app.contentResolver.openInputStream(uri)!!.use { assertArrayEquals(byteArrayOf(1,2,3), it.readBytes()) }
+    }
     @Test fun `pending user action posts approval and does not claim installation succeeded`() {
         val repo = UpdateRepository(app); repo.prefs.edit().putInt("session", 15).commit()
         InstallResultReceiver().onReceive(app, Intent().putExtra("expectedSession", 15)

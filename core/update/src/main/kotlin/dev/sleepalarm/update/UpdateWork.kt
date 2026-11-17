@@ -43,7 +43,7 @@ class UpdateWorker(c: Context, p: WorkerParameters) : Worker(c, p) {
         } catch (e: Exception) {
             repo.status("업데이트 실패: ${e.message ?: e.javaClass.simpleName}")
             // Permanent integrity/signature errors must not spin/re-download. User can retry explicitly.
-            if (e is java.io.IOException && runAttemptCount < 2) Result.retry() else Result.failure()
+            if ((e is java.io.IOException || e is java.util.concurrent.ExecutionException || e is java.util.concurrent.TimeoutException) && runAttemptCount < 2) Result.retry() else Result.failure()
         }
     }
     private fun check(repo: UpdateRepository) {

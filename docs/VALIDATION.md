@@ -1,10 +1,10 @@
 # 0.3.0 추가 검증 (2026-11-17 KST)
 
-권한 진단과 업데이트 모듈 변경 후 로컬 자동 테스트 **298개, 실패/오류/건너뜀 0개**를 확인했습니다. 이전 285개를 유지하고 권한/설정 경로 5개, 업데이트 검증/승인/알람 보호 처리 8개를 추가했습니다.
+권한 진단과 업데이트 모듈 변경 후 로컬 자동 테스트 **299개, 실패/오류/건너뜀 0개**를 확인했습니다. 이전 285개를 유지하고 권한/설정 경로 5개, 업데이트 검증/승인/알람 보호/파일 공유 처리 9개를 추가했습니다.
 
 | 범위 | 결과 |
 |---|---|
-| model / analysis / alarm / sensors / update | 16 / 235 / 29 / 10 / 8개 통과 |
+| model / analysis / alarm / sensors / update | 16 / 235 / 29 / 10 / 9개 통과 |
 | phone/wear assembleDebug 및 assembleRelease | 성공 (서명 경로는 개발용 시험 키) |
 | phone/wear/core:alarm/core:update lintDebug | Error 0, Warning 남음 |
 | actionlint / Bash 구문 / 배포 Python 구문 | 통과 |
