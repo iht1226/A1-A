@@ -2,7 +2,7 @@ plugins { alias(libs.plugins.android.library); alias(libs.plugins.kotlin.android
 android {
     namespace = "dev.sleepalarm.alarm"
     compileSdk = 36
-    defaultConfig { minSdk = 30 }
+    defaultConfig { minSdk = 30; targetSdk = 35 }
     testOptions { unitTests.isIncludeAndroidResources = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
 }

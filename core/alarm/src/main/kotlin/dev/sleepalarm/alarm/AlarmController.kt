@@ -14,7 +14,7 @@ import java.util.UUID
 class AlarmController(private val context: Context) {
     private val store = SettingsStore(context)
     private val manager = context.getSystemService(AlarmManager::class.java)
-    fun canSchedule(): Boolean = android.os.Build.VERSION.SDK_INT < 31 || manager.canScheduleExactAlarms()
+    fun canSchedule(): Boolean = AlarmAccess.canSchedule(context)
 
     fun arm(settings: AlarmSettings, deadline: Long = settings.nextDeadline(Instant.now(), ZoneId.systemDefault()).toEpochMilli()): AlarmPlan =
         reservePlan(settings, deadline, saveUserSettings = true)
@@ -26,7 +26,7 @@ class AlarmController(private val context: Context) {
 
     private fun reservePlan(settings: AlarmSettings, deadline: Long, saveUserSettings: Boolean): AlarmPlan =
         synchronized(SettingsStore.LOCK) {
-            check(canSchedule()) { "워치 설정에서 정확한 알람 권한을 허용하세요." }
+            check(canSchedule()) { "정확한 알람 API가 예약 불가로 응답했습니다. 앱의 권한 진단에서 설치 권한·Android 버전을 확인하세요. 알림 권한과 별개입니다." }
             require(deadline > System.currentTimeMillis()) { "기상 시각이 이미 지났습니다." }
             val old = store.plan()
             val id = UUID.randomUUID().toString()
@@ -131,7 +131,7 @@ class AlarmController(private val context: Context) {
     fun restore() = synchronized(SettingsStore.LOCK) {
         val p = store.plan() ?: return@synchronized
         if (!p.enabled) return@synchronized
-        if (!canSchedule()) { store.status("정확한 알람 권한 없음: 워치에서 다시 허용하세요."); return@synchronized }
+        if (!canSchedule()) { store.status("정확한 알람 API 예약 불가: 앱 권한 진단과 설치 버전을 확인하세요. 일반 알림 권한과 별개입니다."); return@synchronized }
         val now = System.currentTimeMillis()
         when {
             p.ringing -> reserve(p, RECOVER, now + 2_000)

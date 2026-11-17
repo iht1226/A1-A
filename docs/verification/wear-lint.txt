@@ -25,10 +25,7 @@
    application iconwill not show if your monochrome attribute is not also
    specified in android:roundIcon.
 
-/workspace/sleep-alarm/wear/src/main/kotlin/dev/sleepalarm/wear/MainActivity.kt:74: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
-        runCatching { startActivity(Intent(action, Uri.parse("package:$packageName"))) }
-                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/workspace/sleep-alarm/wear/src/main/kotlin/dev/sleepalarm/wear/WatchListenerService.kt:58: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
+/workspace/sleep-alarm/wear/src/main/kotlin/dev/sleepalarm/wear/WatchListenerService.kt:57: Warning: Use the KTX extension function SharedPreferences.edit instead? [UseKtx]
                     inbox.edit().putString("last", request).putString("reply", it.toString()).commit()
                     ~~~~~~~~~~~~
 
@@ -88,4 +85,4 @@
    </lint>
    ```
 
-0 errors, 4 warnings
+0 errors, 3 warnings

@@ -1,3 +1,12 @@
+# 0.3.0 — 권한 진단과 사용자 승인 업데이트
+
+- API 33+ 알람 시계 용도의 USE_EXACT_ALARM, API 31/32의 SCHEDULE_EXACT_ALARM을 분리합니다. 알림 미허용만으로 워치·휴대전화 명령의 알람 예약을 차단하지 않습니다.
+- 정확한 알람 API/설치 권한/알림/채널/전체 화면 상태를 별도 표시하고, 미지원 설정 화면을 안전하게 대체합니다.
+- core:update 모듈: 공개 GitHub Release 감지, 선택적 Wi-Fi 주기 다운로드, 크기·SHA-256·서명·버전·기기 종류 검증, Data Layer 워치 전송, PackageInstaller 사용자 승인, 제한 구간 설치 차단.
+- 워치 외부 설치 UI 미지원과 이전 임시 키의 서명 전환 한계를 명시합니다. 기존 앱 자동 삭제/무승인 설치는 없습니다.
+- Secrets 기반 양쪽 release 서명과 APK/update.json 공개 배포를 추가합니다. Secrets가 없으면 서명 배포를 생략하며 임시 debug 키로 대체하지 않습니다.
+- 로컬 298개 테스트와 debug 빌드/lint 통과. 실제 기기 권한·설치·기상 효과는 미검증입니다.
+
 # 0.2.0 — 적응형 스마트 기상과 관측 가능한 비교
 
 - 기존 독립 AlarmManager 정시 예약과 모듈 구조를 유지합니다. 양쪽 앱 versionCode 3, applicationId와 기본 debug 서명 설정은 유지합니다.

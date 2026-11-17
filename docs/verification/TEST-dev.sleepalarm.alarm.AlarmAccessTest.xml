@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.sleepalarm.alarm.AlarmAccessTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-17T14:30:04.726Z" hostname="d5a27e95d7a6" time="0.274">
+  <properties/>
+  <testcase name="missing special screen falls back to app details" classname="dev.sleepalarm.alarm.AlarmAccessTest" time="0.078"/>
+  <testcase name="missing or denied all settings screens returns manual guidance without exception" classname="dev.sleepalarm.alarm.AlarmAccessTest" time="0.028"/>
+  <testcase name="blocked alarm channel is diagnosed independently" classname="dev.sleepalarm.alarm.AlarmAccessTest" time="0.091"/>
+  <testcase name="notification denial is separate and does not prevent independent exact reservation" classname="dev.sleepalarm.alarm.AlarmAccessTest" time="0.036"/>
+  <testcase name="enabled notification does not masquerade as exact permission" classname="dev.sleepalarm.alarm.AlarmAccessTest" time="0.041"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Intent = Intent { act=dev.sleepalarm.CHANGED pkg=dev.sleepalarm.alarm.test }; Matching wrappers: []
+]]></system-err>
+</testsuite>

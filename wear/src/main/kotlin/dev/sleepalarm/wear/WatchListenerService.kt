@@ -50,7 +50,6 @@ class WatchListenerService : WearableListenerService() {
             val now = System.currentTimeMillis()
             require(j.getLong("createdAt") in (now - 120_000)..(now + 30_000) &&
                 j.getLong("expiresAt") in now..(now + 150_000)) { "요청 만료 또는 기기 시각 불일치" }
-            check(getSystemService(NotificationManager::class.java).areNotificationsEnabled()) { "워치 앱에서 알림 권한을 먼저 허용하세요." }
             val settings = JsonCodec.settings(j.getJSONObject("settings"))
             val p = AlarmController(this).arm(settings)
             JSONObject().put("version", 1).put("request", request).put("ok", true)

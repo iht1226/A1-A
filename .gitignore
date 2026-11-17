@@ -6,3 +6,12 @@ local.properties
 .idea/
 *.jks
 *.keystore
+
+*.p12
+*.b64
+*.key
+*.pem
+.private/
+
+__pycache__/
+*.pyc

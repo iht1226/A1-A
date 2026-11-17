@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
         permissionMessage = SensorPermissionStatus.inspect(this).explanation
     }
     private val motionPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { permissionRevision++ }
-    private val notifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    private val notifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { permissionRevision++ }
     private var permissionMessage by mutableStateOf("")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,8 +47,9 @@ class MainActivity : ComponentActivity() {
             MaterialTheme(colors = Colors(primary = Color(0xFF9CE5D5), secondary = Color(0xFFBBC4FF))) {
                 WatchHome(
                     permission = { which ->
-                        when (which) {
-                            "notification" -> if (Build.VERSION.SDK_INT >= 33) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        runCatching { when (which) {
+                            "notification" -> if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED)
+                                notifications.launch(Manifest.permission.POST_NOTIFICATIONS) else open(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                             "motion" -> motionPermission.launch(Manifest.permission.ACTIVITY_RECOGNITION)
                             "body" -> foreground.launch(Manifest.permission.BODY_SENSORS)
                             "background" -> {
@@ -60,20 +61,18 @@ class MainActivity : ComponentActivity() {
                                         .onFailure { permissionMessage = "권한 설정을 열 수 없습니다. ‘앱 시스템 설정’ → 권한 → 신체 센서를 확인하세요. ${it.javaClass.simpleName}" }
                                 } else permissionMessage = access.explanation
                             }
-                            "exact" -> if (Build.VERSION.SDK_INT >= 31) open(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                            "exact" -> if (Build.VERSION.SDK_INT in 31..32) open(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                                else permissionMessage = "Android 13 이상은 USE_EXACT_ALARM 설치 권한을 사용합니다. 별도 허용 화면이 없습니다. 아래 API 상태와 설치 버전을 확인하세요."
                             "fullscreen" -> if (Build.VERSION.SDK_INT >= 34) open(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT)
                             else -> open(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        }
+                        } }.onFailure { permissionMessage = "권한 요청 화면을 열 수 없습니다 (${it.javaClass.simpleName}). 워치 설정에서 직접 확인하세요." }
                     },
                 )
             }
         }
     }
     override fun onResume() { super.onResume(); permissionRevision++; runCatching { AlarmController(this).restore() } }
-    private fun open(action: String) {
-        runCatching { startActivity(Intent(action, Uri.parse("package:$packageName"))) }
-            .onFailure { permissionMessage = "시스템 설정 화면을 열 수 없습니다 (${it.javaClass.simpleName}). 워치 설정 → 앱 → 수면 알람 → 권한을 직접 확인하세요." }
-    }
+    private fun open(action: String) { permissionMessage = SafeSettings.open(this, action) }
 
     @Composable
     private fun WatchHome(permission: (String) -> Unit) {
@@ -125,13 +124,13 @@ class MainActivity : ComponentActivity() {
                 item { Text(if (settings.smartEnabled) "최대 ${settings.windowMinutes}분 먼저 · 근거가 충분할 때만" else "일반 알람", textAlign = TextAlign.Center) }
                 item { Chip(onClick = { execute {
                     check(exact) { "정확한 알람 권한을 먼저 허용하세요." }
-                    check(notify) { "알림 권한을 먼저 허용하세요." }
-                    val p = alarm.arm(settings); plan = p; message = "예약됨: ${time(p.deadline)}"
+                    val p = alarm.arm(settings); plan = p; message = "예약됨: ${time(p.deadline)}" + if (!notify) " · 알림 차단으로 해제 화면 등이 제한될 수 있습니다." else ""
                 } }, label = { Text("다음 기상 예약") }, modifier = Modifier.fillMaxWidth()) }
                 if (plan?.enabled == true) {
                     item { Text("최종 기상 ${time(plan!!.deadline)}\n${if (plan!!.ringing) "알람 울리는 중" else if (plan!!.snoozeAt > 0) "다시 알림 ${time(plan!!.snoozeAt)}" else "워치에 예약됨"}", textAlign = TextAlign.Center) }
                     item { Chip(onClick = { alarm.dismiss(); plan = store.plan(); message = "예약 해제됨" }, label = { Text("예약 해제") }, colors = ChipDefaults.secondaryChipColors(), modifier = Modifier.fillMaxWidth()) }
                 }
+                item { Text("정확한 알람: ${if (exact) "예약 가능" else "예약 불가"} · 알림: ${if (notify) "켜짐" else "꺼짐"}", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { Text(status, style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { Text("측정 ${time(plan?.sensorStart ?: settings.nextDeadline(Instant.now(), ZoneId.systemDefault()).toEpochMilli() - (settings.windowMinutes * 60_000L + SensorSchedule.warmupMillis(settings.windowMinutes)))}부터 · 판단은 기상 ${settings.windowMinutes}분 전부터", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 if (!sensors && settings.smartEnabled) item { Text(sensorAccess.explanation, style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
@@ -150,7 +149,9 @@ class MainActivity : ComponentActivity() {
                 item { Adjust("다시 알림", "${settings.snoozeMinutes}분", { change(settings.copy(snoozeMinutes = (settings.snoozeMinutes - 1).coerceAtLeast(1))) }, { change(settings.copy(snoozeMinutes = (settings.snoozeMinutes + 1).coerceAtMost(30))) }) }
                 item { Chip(onClick = { execute { AlarmNotifications.vibrate(this@MainActivity, settings, false) } }, label = { Text("진동 미리 보기") }, modifier = Modifier.fillMaxWidth()) }
                 item { Text("변경한 설정은 다음 예약에 적용됩니다. 진동 강도는 기기 지원 범위에 따릅니다.", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
-                item { Text("권한 · 일반 알람 ${if (exact && notify) "준비됨" else "확인 필요"}\n스마트 센서 ${if (sensors) "허용됨" else "제한됨"}", textAlign = TextAlign.Center) }
+                item { Text(AlarmAccess.inspect(this@MainActivity).text(), style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
+                item { Text("스마트 센서 ${if (sensors) "허용됨" else "제한됨"}", textAlign = TextAlign.Center) }
+                item { ActionChip("앱 버전 · 업데이트", { startActivity(Intent(this@MainActivity, dev.sleepalarm.update.UpdateActivity::class.java)) }) }
                 item { Text(sensorAccess.explanation, style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { ActionChip("알림 권한", { permission("notification") }) }
                 item { ActionChip("정확한 알람 권한", { permission("exact") }) }
@@ -161,7 +162,7 @@ class MainActivity : ComponentActivity() {
                 item { ActionChip("전체 화면 알람 허용", { permission("fullscreen") }) }
                 item { ActionChip("앱 시스템 설정", { permission("settings") }) }
                 item { ActionChip("2분 뒤 일반 알람 시험", { execute {
-                    check(exact && notify) { "정확한 알람·알림 권한을 허용하세요." }
+                    check(exact) { "정확한 알람 예약 권한이 필요합니다. 알림 권한과 별개입니다." }
                     val p = alarm.armTest(settings)
                     plan = p; message = "시험 예약: ${time(p.deadline)}"
                 } }) }

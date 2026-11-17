@@ -1,3 +1,55 @@
+/workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmAccess.kt:30: Warning: Field requires API level 33 (current min is 30): android.Manifest.permission#USE_EXACT_ALARM [InlinedApi]
+            return AlarmAccess(exact, if (sdk >= 33) granted(Manifest.permission.USE_EXACT_ALARM) else exact,
+                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmAccess.kt:31: Warning: Field requires API level 33 (current min is 30): android.Manifest.permission#POST_NOTIFICATIONS [InlinedApi]
+                sdk < 33 || granted(Manifest.permission.POST_NOTIFICATIONS), nm.areNotificationsEnabled(),
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   Explanation for issues of type "InlinedApi":
+   This check scans through all the Android API field references in the
+   application and flags certain constants, such as static final integers and
+   Strings, which were introduced in later versions. These will actually be
+   copied into the class files rather than being referenced, which means that
+   the value is available even when running on older devices. In some cases
+   that's fine, and in other cases it can result in a runtime crash or
+   incorrect behavior. It depends on the context, so consider the code
+   carefully and decide whether it's safe and can be suppressed or whether the
+   code needs to be guarded.
+
+   If you really want to use this API and don't need to support older devices
+   just set the minSdkVersion in your build.gradle or AndroidManifest.xml
+   files.
+
+   If your code is deliberately accessing newer APIs, and you have ensured
+   (e.g. with conditional execution) that this code will only ever be called
+   on a supported platform, then you can annotate your class or method with
+   the @TargetApi annotation specifying the local minimum SDK to apply, such
+   as @TargetApi(11), such that this check considers 11 rather than your
+   manifest file's minimum SDK as the required API level.
+
+/workspace/sleep-alarm/core/alarm/build.gradle.kts:5: Warning: Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the android.os.Build.VERSION_CODES javadoc for details. [OldTargetApi]
+    defaultConfig { minSdk = 30; targetSdk = 35 }
+                                 ~~~~~~~~~~~~~~
+
+   Explanation for issues of type "OldTargetApi":
+   When your application or sdk runs on a version of Android that is more
+   recent than your targetSdkVersion specifies that it has been tested with,
+   various compatibility modes kick in. This ensures that your application
+   continues to work, but it may look out of place. For example, if the
+   targetSdkVersion is less than 14, your app may get an option button in the
+   UI.
+
+   To fix this issue, set the targetSdkVersion to the highest available value.
+   Then test your app to make sure everything works correctly. You may want to
+   consult the compatibility notes to see what changes apply to each version
+   you are adding support for:
+   https://developer.android.com/reference/android/os/Build.VERSION_CODES.html
+   as well as follow this guide:
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.
+   html
+
+   https://developer.android.com/distribute/best-practices/develop/target-sdk.html
+
 /workspace/sleep-alarm/core/alarm/build.gradle.kts:15: Warning: A newer version of org.robolectric:robolectric than 4.14.1 is available: 4.18 [NewerVersionAvailable]
     testImplementation("org.robolectric:robolectric:4.14.1")
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -22,6 +74,12 @@
 
    https://goo.gle/UnsafeProtectedBroadcastReceiver
 
+/workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmAccess.kt:46: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+            if (candidate != Settings.ACTION_SETTINGS) intent.data = Uri.parse("package:${c.packageName}")
+                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmAccess.kt:46: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
+            if (candidate != Settings.ACTION_SETTINGS) intent.data = Uri.parse("package:${c.packageName}")
+                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /workspace/sleep-alarm/core/alarm/src/main/kotlin/dev/sleepalarm/alarm/AlarmController.kt:170: Warning: Use the KTX extension function String.toUri instead? [UseKtx]
             data = Uri.parse("sleepalarm://alarm/${p.id}/$event")
                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -101,4 +159,4 @@
    declarations outside of the TOML file and suggests moving them (and in the
    IDE, provides a quickfix to performing the operation automatically).
 
-0 errors, 7 warnings
+0 errors, 12 warnings

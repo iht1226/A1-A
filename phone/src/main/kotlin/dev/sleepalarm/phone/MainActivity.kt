@@ -113,6 +113,7 @@ class MainActivity : ComponentActivity() {
                 Text("SLEEP / WAKE", style = MaterialTheme.typography.labelMedium, color = mint)
                 Text("수면 알람", style = MaterialTheme.typography.headlineLarge)
                 Text("Galaxy Watch7 · 개인용 MVP", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TextButton(onClick = { startActivity(Intent(this@MainActivity, dev.sleepalarm.update.UpdateActivity::class.java)) }) { Text("앱 업데이트") }
             }
             PrimaryTabRow(selectedTabIndex = tab) {
                 listOf("기상 설정", "수면 기록", "연결 안내").forEachIndexed { i, title -> Tab(selected = tab == i, onClick = { tab = i }, text = { Text(title) }) }

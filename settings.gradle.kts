@@ -5,3 +5,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "WatchSleepAlarm"
 include(":phone", ":wear", ":core:model", ":core:analysis", ":core:settings", ":core:alarm", ":core:sensors", ":core:health", ":core:sync")
+
+include(":core:update")
