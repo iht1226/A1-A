@@ -6,6 +6,7 @@ import org.json.JSONArray
 
 object JsonCodec {
     fun settings(s: AlarmSettings) = JSONObject().apply {
+        put("experimentalCpuHold", s.experimentalCpuHold)
         put("hour", s.hour); put("minute", s.minute); put("window", s.windowMinutes)
         put("smart", s.smartEnabled); put("amplitude", s.amplitude)
         put("pattern", s.pattern.name); put("snooze", s.snoozeMinutes)
@@ -18,6 +19,7 @@ object JsonCodec {
         keepFinalAfterSmartDismiss = j.optBoolean("keepFinal", false),
         algorithmMode = enumValue(j.optString("algorithmMode"), AlgorithmMode.ADAPTIVE),
         adaptiveThreshold = j.optDouble("threshold", 0.72),
+        experimentalCpuHold = j.optBoolean("experimentalCpuHold", false),
     )
     fun plan(p: AlarmPlan) = JSONObject().apply {
         put("id", p.id); put("armedAt", p.armedAt); put("deadline", p.deadline)

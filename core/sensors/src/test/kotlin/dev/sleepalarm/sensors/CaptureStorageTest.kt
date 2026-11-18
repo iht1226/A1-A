@@ -68,7 +68,7 @@ class CaptureStorageTest {
     @Test fun `collection trial is rejected near alarm measurement without replacing reservation`() {
         val store=SettingsStore(app); val p=AlarmController(app).arm(AlarmSettings(),System.currentTimeMillis()+45*60_000)
         val service=Robolectric.buildService(SmartWindowService::class.java).create()
-        assertEquals(Service.START_NOT_STICKY,service.get().onStartCommand(Intent(DiagnosticArchive.TEST_START),0,1))
+        assertEquals(Service.START_NOT_STICKY,service.get().onStartCommand(Intent(DiagnosticArchive.TEST_START).putExtra(DiagnosticArchive.CPU_HOLD, true),0,1))
         assertEquals(p,store.plan()); assertEquals(p.deadline,app.getSystemService(AlarmManager::class.java).nextAlarmClock.triggerTime)
         service.destroy()
     }

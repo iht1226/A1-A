@@ -21,10 +21,27 @@ class DiagnosticArchive(c: Context) : SQLiteOpenHelper(c, "sensor-diagnostics-v1
     fun recent(): List<JSONObject> = readableDatabase.rawQuery("SELECT json FROM runs ORDER BY at DESC LIMIT 20", null).use {
         buildList { while (it.moveToNext()) add(reconcile(JSONObject(it.getString(0)))) }
     }
+    fun latest(): JSONObject? = readableDatabase.rawQuery("SELECT json FROM runs ORDER BY at DESC, id DESC LIMIT 1", null).use {
+        if (it.moveToFirst()) reconcile(JSONObject(it.getString(0))) else null
+    }
+
+    fun saveRemote(row: JSONObject) {
+        val database = writableDatabase
+        database.beginTransaction()
+        try {
+            val previous = get(row.getString("id"))
+            if (previous == null || row.optLong("heartbeat") >= previous.optLong("heartbeat")) save(row)
+            database.setTransactionSuccessful()
+        } finally {
+            database.endTransaction()
+        }
+    }
+
     /** Missing onDestroy is never reported as a known stop time; include the unobserved tail. */
     private fun reconcile(j: JSONObject): JSONObject {
         val end = j.optLong("plannedEnd")
-        if (j.optBoolean("remoteSnapshot") || end <= 0 || System.currentTimeMillis() < end || j.optLong("censoredAt") > 0) return j
+        if (j.optBoolean("remoteSnapshot") || end <= 0 || System.currentTimeMillis() < end || j.optLong("censoredAt") > 0 ||
+            (j.optBoolean("test") && j.optLong("stoppedAt") > 0)) return j
         val a = j.optJSONArray("spans") ?: JSONArray()
         val spans = (0 until a.length()).map { a.getJSONArray(it).let { p -> p.getLong(0) to p.getLong(1) } }
         val start = j.getLong("plannedStart"); val window = j.getLong("windowStart")
@@ -36,6 +53,16 @@ class DiagnosticArchive(c: Context) : SQLiteOpenHelper(c, "sensor-diagnostics-v1
         }
         val c = CoverageDiagnostics.measure(start,end,spans)
         if (j.optLong("stoppedAt") == 0L) j.put("stopReason", "실제 종료 시각 미확인: 프로세스 종료/OS 제한/종료 콜백 미실행 가능. 마지막 저장 이후는 미관측.")
+        val previousEnd = j.optLong("observedUntil", j.optLong("heartbeat", start)).coerceIn(start, end)
+        val display = j.optJSONObject("displayCoverage")
+        if (display != null && previousEnd < end) {
+            val unknown = display.optJSONObject("UNKNOWN") ?: JSONObject()
+            unknown.put("duration", unknown.optLong("duration") + end - previousEnd)
+                .put("gap", maxOf(unknown.optLong("gap"), end - previousEnd))
+            display.put("UNKNOWN", unknown)
+        }
+        if (j.has("storedCoverage") && end > start)
+            j.put("storedCoverage", j.optDouble("storedCoverage") * (previousEnd - start) / (end - start))
         j.put("observedUntil",end)
             .put("coverage",c.ratio).put("maxGap",c.maximumGapMillis).put("warmup",phase(start,window)).put("smart",phase(window,end))
             .put("minutes",JSONArray(CoverageDiagnostics.minutes(start,end,spans).map {
@@ -68,6 +95,7 @@ class DiagnosticArchive(c: Context) : SQLiteOpenHelper(c, "sensor-diagnostics-v1
         remove("spans"); remove("profile"); put("remoteSnapshot", true); if (!has("events")) put("events", events(j.getString("id")))
     }
     companion object {
+        const val CPU_HOLD = "cpuHold"
         const val TEST_START = "dev.sleepalarm.SENSOR_TEST_START"
         const val TEST_STOP = "dev.sleepalarm.SENSOR_TEST_STOP"
         const val REPLAY = "dev.sleepalarm.SENSOR_REPLAY"
@@ -102,6 +130,37 @@ class DiagnosticArchive(c: Context) : SQLiteOpenHelper(c, "sensor-diagnostics-v1
             if (j.optBoolean("spanDetailTruncated")) append("관측 범위 상세 상한 도달: 관측률은 보수적 하한이며 전체 정확도는 미확정입니다.\n")
             append(summary(j)); append("\n전체 이벤트 관측률 ${if (j.has("coverage")) "%.1f%%".format(j.optDouble("coverage") * 100) else "미계산"} · 최대 공백 ${j.optLong("maxGap") / 1000}초\n")
             append("저장 구간 관측시간 ${j.optLong("storedCovered") / 1000}초 · 부분 구간/공백을 정지로 채우지 않습니다.\n")
+            if (j.has("cpuRequested")) {
+                append("수집 방식: ${if (j.optBoolean("cpuRequested")) "CPU 유지 (실험적)" else "기본 절전"}\n")
+                j.optJSONObject("wakeLock")?.let { lock ->
+                    append("WakeLock ${lock.optString("status")} · 제한 ${lock.optLong("timeoutMs") / 1000}초\n")
+                    append("획득 ${clock(lock.optLong("acquiredAt"))} · 해제 확인 ${clock(lock.optLong("releasedAt"))}\n")
+                    if (lock.optString("status") == "TIMEOUT_OR_OS_RELEASE_OBSERVED")
+                        append("timeout 또는 OS 해제는 감지 시각을 표시합니다. 실제 해제 시각은 더 이를 수 있습니다.\n")
+                    append("확인된 유지 시간 ${j.optLong("wakeHeldTotalMs") / 1000}초 (이전 수집 구간 포함)\n")
+                    if (j.optBoolean("wakePreviousStopUnknown") || (j.optLong("stoppedAt") == 0L && lock.optString("status") == "HELD"))
+                        append("마지막 기록 이후 실제 해제 시각 및 유지 시간은 확인이 필요합니다.\n")
+                }
+                fun percent(key: String) = j.optInt(key, -1).takeIf { it >= 0 }?.let { "$it%" } ?: "미확인"
+                append("배터리 ${percent("captureBatteryStart")} → ${percent("captureBatteryLast")} (잔량 참고값)\n")
+                append("전체 저장 관측률 ${"%.1f%%".format(j.optDouble("storedCoverage", 0.0) * 100)}\n")
+                j.optJSONObject("displayCoverage")?.let { coverage ->
+                    val labels = mapOf("ON" to "켜짐", "OFF" to "꺼짐", "DOZE" to "앰비언트", "UNKNOWN" to "미확인")
+                    labels.forEach { (key, label) -> coverage.optJSONObject(key)?.let { row ->
+                        val span = row.optLong("duration").coerceAtLeast(1)
+                        val observed = row.optLong("observed")
+                        append("화면 $label ${span / 1000}초 · 실측 ${"%.1f%%".format(100.0 * observed / span)} · 저장 ${"%.1f%%".format(100.0 * row.optLong("stored") / span)} · 실측 누락 ${(span - observed) / 1000}초 · 최대 공백 ${row.optLong("gap") / 1000}초\n")
+                    } }
+                }
+                listOf("displayChanges" to "화면 상태 변경 감지", "chargingChanges" to "충전 상태").forEach { (key, label) ->
+                    val items = j.optJSONArray(key) ?: JSONArray()
+                    append("$label:\n")
+                    for (i in 0 until items.length()) {
+                        val item = items.getJSONObject(i)
+                        append("${clock(item.optLong("at"))} ${item.optString("state")}\n")
+                    }
+                }
+            }
             append("시간대별(실측 시각 기준):\n")
             val minutes = j.optJSONArray("minutes") ?: JSONArray()
             for (i in 0 until minutes.length()) {

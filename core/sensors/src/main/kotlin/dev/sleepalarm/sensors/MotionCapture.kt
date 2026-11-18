@@ -9,9 +9,9 @@ import dev.sleepalarm.model.MotionSample
 import org.json.*
 import kotlin.math.*
 
-data class CaptureSpec(val id: String, val start: Long, val window: Long, val end: Long, val test: Boolean)
+data class CaptureSpec(val id: String, val start: Long, val window: Long, val end: Long, val test: Boolean, val cpuHold: Boolean = false)
 
-/** One serial sensor/DB/analysis thread per run. No continuous wake lock, no synthetic stillness. */
+/** One serial sensor/DB/analysis thread per run. The optional CPU lease belongs to this capture segment. */
 class MotionCapture(private val context: Context, val spec: CaptureSpec,
     private val onTick: (MotionCapture, Long) -> Unit, private val onEnd: (String) -> Unit) : SensorEventListener2 {
     private val thread = HandlerThread("sleep-capture").apply { start() }
@@ -21,6 +21,9 @@ class MotionCapture(private val context: Context, val spec: CaptureSpec,
     lateinit var db: SensorDatabase; private set
     lateinit var archive: DiagnosticArchive; private set
     lateinit var state: JSONObject; private set
+    private val cpuLease = CaptureWakeLock.forContext(context)
+    private val environment = CaptureEnvironment(context, handler)
+    private var priorWakeMs = 0L
     private val accumulator = MotionAccumulator()
     private val audit = mutableListOf<SensorDatabase.Audit>()
     private val spans = mutableListOf<Pair<Long, Long>>()
@@ -44,18 +47,22 @@ class MotionCapture(private val context: Context, val spec: CaptureSpec,
             if (closing) return
             val now = System.currentTimeMillis()
             try {
-                if (now >= spec.end) { onEnd("PLANNED_END"); return }
-                if (abs(now - SystemClock.elapsedRealtime() - anchor) > 2_000) { onEnd("CLOCK_CHANGED"); return }
+                if (now >= spec.end) { end("PLANNED_END"); return }
+                if (abs(now - SystemClock.elapsedRealtime() - anchor) > 2_000) { end("CLOCK_CHANGED"); return }
                 health(now); flushAudit()
                 val analysisStart = SystemClock.elapsedRealtime()
                 onTick(this@MotionCapture, now)
                 state.put("analysisMaxMs", maxOf(state.optLong("analysisMaxMs"), SystemClock.elapsedRealtime()-analysisStart))
                 persist(now)
-            } catch (e: Exception) { error("TICK_${e.javaClass.simpleName}") }
+            } catch (e: Exception) {
+                error("TICK_${e.javaClass.simpleName}")
+                if (spec.cpuHold) { end("CPU_CAPTURE_ERROR"); return }
+            }
             if (!closing) handler.postDelayed(this, 30_000)
         }
     }
     fun start() = handler.post {
+        if (closing) return@post
         try {
             db = SensorDatabase(context); db.prune(System.currentTimeMillis()); archive = DiagnosticArchive(context)
             val now = System.currentTimeMillis()
@@ -69,15 +76,28 @@ class MotionCapture(private val context: Context, val spec: CaptureSpec,
             state.put("serviceCommandAt", commandAt)
             state.put("actualStart", state.optLong("actualStart").takeIf { it > 0 } ?: now)
                 .put("startDelay", maxOf(0, (state.optLong("actualStart").takeIf { it > 0 } ?: now) - spec.start))
-            state.put("version", "capture-0.4.0/adaptive-0.2.0").put("generation", state.optInt("generation") + 1)
+            val previousHeartbeat = state.optLong("heartbeat")
+            priorWakeMs = state.optLong("wakeHeldTotalMs")
+            if (state.optJSONObject("wakeLock")?.optString("status") == "HELD")
+                state.put("wakePreviousStopUnknown", true)
+            state.put("cpuRequested", spec.cpuHold)
+            state.put("version", "capture-0.5.0/adaptive-0.2.0").put("generation", state.optInt("generation") + 1)
                 .put("segmentStart", now).put("stoppedAt", 0).put("stopReason", "").put("heartbeat", now)
             anchor = now - SystemClock.elapsedRealtime()
             archive.save(state)
             archive.event(spec.id, if (state.optInt("generation") > 1) "SERVICE_RESTART: previous process/segment ended or was interrupted; no gap filled" else "SERVICE_START")
-            if (!register(now)) { onEnd("REGISTER_FAILED"); return@post }
-            persist(now)
+            if (!register(now)) { end("REGISTER_FAILED"); return@post }
+            if (closing) return@post
+            runCatching { environment.start(state, now, previousHeartbeat) }
+                .onFailure { error("ENVIRONMENT_${it.javaClass.simpleName}") }
+            if (spec.cpuHold) {
+                cpuLease.acquire(spec.end - System.currentTimeMillis())
+                val snapshot = cpuLease.snapshot()
+                archive.event(spec.id, "WAKE_LOCK ${snapshot.getString("status")} timeoutMs=${snapshot.getLong("timeoutMs")}")
+            }
+            persist(System.currentTimeMillis())
             handler.post(loop)
-        } catch (e: Exception) { runCatching { error("START_${e.javaClass.simpleName}") }; onEnd("CAPTURE_START_FAILED") }
+        } catch (e: Exception) { runCatching { error("START_${e.javaClass.simpleName}") }; end("CAPTURE_START_FAILED") }
     }
     private fun register(now: Long): Boolean {
         val candidates = sensors.getSensorList(Sensor.TYPE_ACCELEROMETER).filter { it.reportingMode == Sensor.REPORTING_MODE_CONTINUOUS }
@@ -147,6 +167,7 @@ class MotionCapture(private val context: Context, val spec: CaptureSpec,
         state.put("dbWriteTotalMs", state.optLong("dbWriteTotalMs")+dt); increment(state,"dbWriteOps")
     }
     internal fun health(now: Long) {
+        environment.sampleDisplay(now)
         val interactive = power.isInteractive; val doze = power.isDeviceIdleMode
         if (screen != interactive || idle != doze) { archive.event(spec.id, "POWER screen=$interactive idle=$doze save=${power.isPowerSaveMode}"); screen = interactive; idle = doze }
         val silence = now - maxOf(lastReceived, lastRegister)
@@ -198,14 +219,28 @@ class MotionCapture(private val context: Context, val spec: CaptureSpec,
             .put("minutes", JSONArray(CoverageDiagnostics.minutes(spec.start, maxOf(spec.start, until), spans).map {
                 JSONObject().put("from", it.from).put("until", it.until).put("coverage", it.ratio).put("gap", it.maximumGapMillis).put("warmup", it.from < spec.window)
             }))
+        val lock = cpuLease.snapshot()
+        state.put("wakeLock", lock).put("wakeHeldTotalMs", priorWakeMs + lock.getLong("heldMs"))
+        environment.record(state, spec.start, until, spans, motion)
+        state.put("storedCoverage", if (until > spec.start)
+            CaptureEnvironment.storedMillis(spec.start, until, motion).toDouble() / (until - spec.start) else 0.0)
         archive.save(state)
     }
+
+    private fun end(reason: String) {
+        cpuLease.release()
+        onEnd(reason)
+    }
+
     fun close(reason: String) {
         if (closing) return
         closing = true
+        cpuLease.release()
         runCatching { sensors.unregisterListener(this) }; handler.removeCallbacks(loop)
         handler.post {
             try {
+                runCatching { sensors.unregisterListener(this) }
+                environment.close()
                 if (::state.isInitialized && ::db.isInitialized && ::archive.isInitialized) {
                     val now = System.currentTimeMillis()
                     if (!spec.test) {
@@ -213,6 +248,10 @@ class MotionCapture(private val context: Context, val spec: CaptureSpec,
                         if (first > 0) { observationLimit = minOf(observationLimit, first); state.put("censoredAt", first) }
                     }
                     accumulator.finish(now)?.let(::saveMotion); flushAudit(); state.put("stoppedAt", now).put("stopReason", reason)
+                    if (spec.cpuHold) {
+                        val lock = cpuLease.snapshot()
+                        archive.event(spec.id, "WAKE_LOCK ${lock.getString("status")} heldMs=${lock.getLong("heldMs")} acquiredAt=${lock.getLong("acquiredAt")} releasedAt=${lock.getLong("releasedAt")}")
+                    }
                     archive.event(spec.id, "SERVICE_STOP $reason"); persist(now)
                     if (!spec.test) runCatching { dev.sleepalarm.settings.SettingsStore(context).updateReport(spec.id) {
                         it.copy(motionBins = state.optInt("bins"), heartSamples = state.optInt("heartCount"))

@@ -41,17 +41,22 @@ class SmartWindowService : Service() {
         val activePlan = p?.takeIf { it.enabled && it.settings.smartEnabled && !it.finalDelivered && !it.earlyDelivered &&
             now in it.sensorStart until it.deadline && store.blockedSession() != it.id }
         val testRequest = intent?.action == DiagnosticArchive.TEST_START
-        if (testRequest && (capture != null || p?.let { it.enabled && now + 16 * 60_000 >= it.sensorStart && !it.finalDelivered && !it.earlyDelivered } == true)) {
+        val testMinutes = intent?.getIntExtra("minutes", 10)?.coerceIn(10, 15) ?: 10
+        val testEnd = now + testMinutes * 60_000L
+        if (testRequest && (capture != null || trialConflicts(p, now, testEnd))) {
             store.status("현재 수집 중이거나 기상 관측이 임박해 시험을 시작하지 않습니다.")
             if (capture == null) stopSelf(); return if (capture != null) START_STICKY else START_NOT_STICKY
         }
         val resumedTest = if (intent == null && activePlan == null) runCatching { DiagnosticArchive(this).use { a -> a.recent().firstOrNull {
-            it.optBoolean("test") && it.optLong("stoppedAt") == 0L && now in it.optLong("plannedStart") until it.optLong("plannedEnd")
+            it.optBoolean("test") && it.optLong("stoppedAt") == 0L &&
+                now in it.optLong("plannedStart") until it.optLong("plannedEnd") &&
+                !trialConflicts(p, now, it.optLong("plannedEnd"))
         } } }.getOrNull() else null
         val spec = when {
-            activePlan != null -> CaptureSpec(activePlan.id, activePlan.sensorStart, activePlan.windowStart, activePlan.deadline, false)
-            testRequest -> { val minutes = intent!!.getIntExtra("minutes", 10).coerceIn(10,15); CaptureSpec("test-${UUID.randomUUID()}", now, now + 5 * 60_000, now + minutes * 60_000, true) }
-            resumedTest != null -> CaptureSpec(resumedTest.getString("id"), resumedTest.getLong("plannedStart"), resumedTest.getLong("windowStart"), resumedTest.getLong("plannedEnd"), true)
+            activePlan != null -> CaptureSpec(activePlan.id, activePlan.sensorStart, activePlan.windowStart, activePlan.deadline, false, activePlan.settings.experimentalCpuHold)
+            testRequest -> CaptureSpec("test-${UUID.randomUUID()}", now, now + 5 * 60_000, testEnd, true,
+                intent?.getBooleanExtra(DiagnosticArchive.CPU_HOLD, false) == true)
+            resumedTest != null -> CaptureSpec(resumedTest.getString("id"), resumedTest.getLong("plannedStart"), resumedTest.getLong("windowStart"), resumedTest.getLong("plannedEnd"), true, resumedTest.optBoolean("cpuRequested"))
             capture?.spec?.test == true && now < capture!!.spec.end -> return START_STICKY
             else -> { endReason = "PLAN_INACTIVE_OR_WINDOW_END"; stopSelf(); return START_NOT_STICKY }
         }
@@ -76,7 +81,11 @@ class SmartWindowService : Service() {
         val next = MotionCapture(this, spec, { c, time ->
             c.state.put("profile", profile).put("algorithm", activePlan?.algorithm?.name ?: "TEST_NO_ALARM")
             if (!MonitoringAccess.canMonitor(this)) { finish(c, "MONITORING_PERMISSION_LOST", startId); return@MotionCapture }
-            if (spec.test) { c.state.put("reason", "독립 센서 시험: 알람 판단·출력 없음"); return@MotionCapture }
+            if (spec.test) {
+                if (trialConflicts(store.plan(), time, spec.end)) finish(c, "TEST_PREEMPTED_BY_RESERVATION", startId)
+                c.state.put("reason", "독립 센서 시험: 알람 판단·출력 없음")
+                return@MotionCapture
+            }
             val current = store.plan()
             if (current?.id != spec.id || !current.enabled || current.finalDelivered || current.earlyDelivered || !MonitoringAccess.canMonitor(this)) {
                 finish(c, "PLAN_CHANGED_OR_PERMISSION_LOST", startId); return@MotionCapture
@@ -129,7 +138,7 @@ class SmartWindowService : Service() {
         return START_STICKY
     }
     private fun finish(c: MotionCapture, reason: String, startId: Int) {
-        main.post { if (capture === c) { endReason = reason; stopSelf() } }
+        main.post { if (capture === c) { endReason = reason; c.close(reason); stopSelf() } }
     }
     override fun onDestroy() {
         val c = capture; capture = null
@@ -153,6 +162,14 @@ class SmartWindowService : Service() {
         runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }; super.onDestroy()
     }
     companion object {
+        internal fun trialConflicts(plan: AlarmPlan?, now: Long, testEnd: Long): Boolean {
+            if (plan == null || !plan.enabled) return false
+            if (plan.ringing) return true
+            if (plan.snoozeAt > 0 && plan.snoozeAt <= testEnd) return true
+            if (plan.finalDelivered || plan.deadline <= now) return false
+            val first = if (plan.settings.smartEnabled && !plan.earlyDelivered) plan.sensorStart else plan.deadline
+            return first <= testEnd
+        }
         private val heartMutex = Mutex()
         fun reference(j: JSONObject): PersonalReference {
             fun list(key: String): List<Double> = j.optJSONArray(key)?.let { a -> (0 until a.length()).map { a.getDouble(it) } } ?: emptyList()
@@ -163,7 +180,7 @@ class SmartWindowService : Service() {
             .put("offset", r.thresholdOffset).put("feedbackNights", r.feedbackNights).put("sleepContext", JsonCodec.context(r.sleepContext))
         fun recordStartFailure(c: Context, spec: CaptureSpec, reason: String) { runCatching { DiagnosticArchive(c).use { a ->
             val j = a.get(spec.id) ?: JSONObject().put("id", spec.id).put("plannedStart", spec.start).put("windowStart", spec.window).put("plannedEnd", spec.end).put("test", spec.test)
-            j.put("reason", "서비스 시작 실패: $reason"); a.save(j); a.event(spec.id, "FGS_START_FAILED $reason")
+            j.put("cpuRequested", spec.cpuHold).put("reason", "서비스 시작 실패: $reason"); a.save(j); a.event(spec.id, "FGS_START_FAILED $reason")
         } } }
     }
 }

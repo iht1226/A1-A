@@ -149,6 +149,16 @@ class MainActivity : ComponentActivity() {
                             Text("조기 해제 후에도 정시 백업 유지", modifier = Modifier.weight(1f))
                             Switch(settings.keepFinalAfterSmartDismiss, { save(settings.copy(keepFinalAfterSmartDismiss = it)) })
                         }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(if (settings.experimentalCpuHold) "CPU 유지 (실험적)" else "기본 절전 방식", Modifier.weight(1f))
+                            Switch(settings.experimentalCpuHold, { enabled ->
+                                if (enabled) android.app.AlertDialog.Builder(this@MainActivity)
+                                    .setMessage("워치에서 화면을 끈 CPU 유지 시험과 WakeLock 해제를 먼저 확인하세요. 다음 스마트 예약부터 적용되며 배터리 소모가 늘 수 있습니다.")
+                                    .setPositiveButton("CPU 유지 사용") { _, _ -> save(settings.copy(experimentalCpuHold = true)) }
+                                    .setNegativeButton("취소", null).show()
+                                else save(settings.copy(experimentalCpuHold = false))
+                            }, enabled = settings.smartEnabled)
+                        }
                         Text("보수 기준 ${"%.2f".format(settings.adaptiveThreshold)} · 높을수록 조기 판단을 줄입니다")
                         Slider(settings.adaptiveThreshold.toFloat(), { save(settings.copy(adaptiveThreshold = it.toDouble().coerceIn(0.65, 0.90))) }, valueRange = 0.65f..0.90f)
 

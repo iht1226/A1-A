@@ -17,6 +17,7 @@ data class AlarmSettings(
     val keepFinalAfterSmartDismiss: Boolean = false,
     val algorithmMode: AlgorithmMode = AlgorithmMode.ADAPTIVE,
     val adaptiveThreshold: Double = 0.72,
+    val experimentalCpuHold: Boolean = false,
 ) {
     init {
         require(hour in 0..23 && minute in 0..59)

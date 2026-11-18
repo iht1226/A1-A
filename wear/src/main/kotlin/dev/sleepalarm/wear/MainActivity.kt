@@ -141,6 +141,14 @@ class MainActivity : ComponentActivity() {
                 item { Chip(onClick = { change(settings.copy(algorithmMode = AlgorithmMode.entries[(settings.algorithmMode.ordinal + 1) % AlgorithmMode.entries.size])) }, label = { Text("방식: ${modeLabel(settings.algorithmMode)}") }, modifier = Modifier.fillMaxWidth()) }
                 item { Text("교대·무작위 시험은 선택 시에만 적용됩니다. 같은 기상 날짜의 재예약과 재부팅은 배정을 유지합니다.", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { ToggleChip(checked = settings.keepFinalAfterSmartDismiss, onCheckedChange = { change(settings.copy(keepFinalAfterSmartDismiss = it)) }, label = { Text("조기 해제 후 정시 백업") }, toggleControl = { Switch(checked = settings.keepFinalAfterSmartDismiss) }, modifier = Modifier.fillMaxWidth()) }
+                item { ToggleChip(checked = settings.experimentalCpuHold, onCheckedChange = { enabled ->
+                    if (enabled) android.app.AlertDialog.Builder(this@MainActivity)
+                        .setMessage("화면을 끈 CPU 유지 시험에서 관측률과 종료 후 해제를 확인했다면 켜세요. 다음 스마트 예약의 수집 구간에 적용되며 배터리 소모가 늘 수 있습니다.")
+                        .setPositiveButton("CPU 유지 사용") { _, _ -> change(settings.copy(experimentalCpuHold = true)) }
+                        .setNegativeButton("취소", null).show()
+                    else change(settings.copy(experimentalCpuHold = false))
+                }, label = { Text(if (settings.experimentalCpuHold) "CPU 유지 (실험적)" else "기본 절전 방식") },
+                    toggleControl = { Switch(checked = settings.experimentalCpuHold) }, modifier = Modifier.fillMaxWidth()) }
                 item { Adjust("보수 기준", "%.2f".format(settings.adaptiveThreshold), { change(settings.copy(adaptiveThreshold = (settings.adaptiveThreshold - 0.02).coerceAtLeast(0.65))) }, { change(settings.copy(adaptiveThreshold = (settings.adaptiveThreshold + 0.02).coerceAtMost(0.90))) }) }
                 item { Text("높을수록 조기 기상을 더 보수적으로 판단합니다. 최종 시각은 바뀌지 않습니다.", style = MaterialTheme.typography.caption2, textAlign = TextAlign.Center) }
                 item { Adjust("범위", "${settings.windowMinutes}분", { change(settings.copy(windowMinutes = (settings.windowMinutes - 5).coerceAtLeast(10))) }, { change(settings.copy(windowMinutes = (settings.windowMinutes + 5).coerceAtMost(60))) }) }

@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
-        <activity android:name=".SensorDiagnosticsActivity" android:exported="false" />
+        <activity android:name=".SensorDiagnosticsActivity" android:theme="@style/SleepDiagnosticsTheme" android:exported="false" />
         <service android:name=".DiagnosticBridge" android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />

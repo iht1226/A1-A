@@ -22,6 +22,7 @@ class MotionCaptureLifecycleTest {
     private lateinit var sensor: Sensor
     @Before fun setup() {
         app=RuntimeEnvironment.getApplication()
+        Shadows.shadowOf(app).grantPermissions(android.Manifest.permission.WAKE_LOCK)
         app.deleteDatabase("observations-v1.db"); app.deleteDatabase("sensor-diagnostics-v1.db")
         app.createDeviceProtectedStorageContext().getSharedPreferences("alarm-v1",0).edit().clear().commit()
         ShadowAlarmManager.setCanScheduleExactAlarms(true)
@@ -53,6 +54,43 @@ class MotionCaptureLifecycleTest {
         assertEquals(p.deadline,app.getSystemService(AlarmManager::class.java).nextAlarmClock.triggerTime)
         DiagnosticArchive(app).use { a -> assertTrue(a.events(spec.id).toString().contains("SERVICE_RESTART")) }
     }
+    @Test fun `CPU trial abort on capture exception releases before shutdown and preserves final reservation`() {
+        val p = AlarmController(app).arm(AlarmSettings(), System.currentTimeMillis() + 3 * 3_600_000)
+        val now = System.currentTimeMillis()
+        val end = AtomicReference("")
+        val c = MotionCapture(app, CaptureSpec("cpu-error", now, now + 300_000, now + 600_000, true, true),
+            { _, _ -> error("injected analysis failure") }, { end.set(it) })
+        try {
+            c.start()
+            serial(c) {}
+            serial(c) {
+                assertEquals("CPU_CAPTURE_ERROR", end.get())
+                assertFalse(ShadowPowerManager.getLatestWakeLock().isHeld)
+            }
+        } finally { close(c) }
+        assertEquals(p.deadline, app.getSystemService(AlarmManager::class.java).nextAlarmClock.triggerTime)
+    }
+
+    @Test fun `CPU trial stop releases the lock and persists confirmed cleanup`() {
+        val now = System.currentTimeMillis()
+        val c = MotionCapture(app, CaptureSpec("cpu-stop", now, now + 300_000, now + 900_000, true, true), { _, _ -> }, {})
+        try {
+            c.start()
+            serial(c) { assertTrue(ShadowPowerManager.getLatestWakeLock().isHeld) }
+            c.close("TEST_USER_STOP")
+            assertFalse(ShadowPowerManager.getLatestWakeLock().isHeld)
+            c.close("DUPLICATE")
+        } finally {
+            c.close("TEST_FINALLY")
+            c.handler.looper.thread.join(10_000)
+        }
+        DiagnosticArchive(app).use { archive ->
+            val state = archive.get("cpu-stop")!!
+            assertEquals("TEST_USER_STOP", state.getString("stopReason"))
+            assertEquals("RELEASED", state.getJSONObject("wakeLock").getString("status"))
+        }
+    }
+
     @Test fun `delayed raw events keep measurement and receipt time and invalid future cannot poison later events`() {
         Shadows.shadowOf(app.getSystemService(PowerManager::class.java)).setIsInteractive(false)
         ShadowSystemClock.advanceBy(java.time.Duration.ofMinutes(5))

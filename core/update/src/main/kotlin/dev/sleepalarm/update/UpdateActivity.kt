@@ -27,9 +27,13 @@ class UpdateActivity : Activity() {
         super.onCreate(state)
         val repo = UpdateRepository(this)
         val column = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; val p = (32 * resources.displayMetrics.density).toInt(); setPadding(p, p, p, p) }
-        val scroll = ScrollView(this).apply { addView(column) }; setContentView(scroll)
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            addView(column)
+        }
+        setContentView(scroll)
         fun text(s: String) = TextView(this).also { it.text = s; it.setPadding(0, 12, 0, 12); column.addView(it) }
-        fun button(s: String, click: () -> Unit) = Button(this).also { b -> b.text = s; b.setOnClickListener { runCatching(click).onFailure { repo.status(it.message ?: it.javaClass.simpleName) } }; column.addView(b) }
+        fun button(s: String, click: () -> Unit) = Button(this).also { b -> b.text = s; b.isAllCaps = false; b.setOnClickListener { runCatching(click).onFailure { repo.status(it.message ?: it.javaClass.simpleName) } }; column.addView(b) }
         val info = repo.installed()
         val installer = runCatching { packageManager.getInstallSourceInfo(packageName).installingPackageName }.getOrNull() ?: "확인 불가/ADB"
         text("수면 알람 ${info.versionName} (${info.longVersionCode})\nAPI ${Build.VERSION.SDK_INT}\n설치자: $installer\n현재 서명 SHA-256:\n${repo.signers(info).joinToString("\n")}")
